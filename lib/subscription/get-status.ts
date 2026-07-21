@@ -41,7 +41,7 @@ export async function getSubscriptionStatus(
   if (status === "trial" && trialEndsAt) {
     const now = new Date();
     const diffMs = trialEndsAt.getTime() - now.getTime();
-    daysLeft = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+    daysLeft = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
   }
 
   const canWrite = status === "trial" || status === "active";
