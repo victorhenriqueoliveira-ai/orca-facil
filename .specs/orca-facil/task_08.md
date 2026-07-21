@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Wizard — Etapas 1 e 2 (cliente + ambientes)
 type: frontend
 complexity: high
@@ -38,13 +38,13 @@ Implementa o núcleo do produto: o wizard de criação de orçamento nas etapas 
 
 ## Subtasks
 
-- [ ] 8.1 Criar shell do wizard com steps, barra de progresso e navegação anterior/próximo
-- [ ] 8.2 Implementar Etapa 1: busca e seleção de cliente + criação inline + `POST /api/quotes`
-- [ ] 8.3 Criar Route Handlers: `POST /api/quotes`, `GET /api/templates`
-- [ ] 8.4 Implementar Etapa 2: listagem de ambientes e botão de adição
-- [ ] 8.5 Implementar seletor de templates com pré-população de itens
-- [ ] 8.6 Criar Route Handlers: `POST /api/quotes/[id]/versions/[vid]/rooms`, `POST .../items`
-- [ ] 8.7 Implementar adição de item do catálogo próprio com snapshot de preço
+- [x] 8.1 Criar shell do wizard com steps, barra de progresso e navegação anterior/próximo
+- [x] 8.2 Implementar Etapa 1: busca e seleção de cliente + criação inline + `POST /api/quotes`
+- [x] 8.3 Criar Route Handlers: `POST /api/quotes`, `GET /api/templates`
+- [x] 8.4 Implementar Etapa 2: listagem de ambientes e botão de adição
+- [x] 8.5 Implementar seletor de templates com pré-população de itens
+- [x] 8.6 Criar Route Handlers: `POST /api/quotes/[id]/versions/[vid]/rooms`, `POST .../items`
+- [x] 8.7 Implementar adição de item do catálogo próprio com snapshot de preço
 
 ## Implementation Details
 
@@ -88,16 +88,16 @@ A pré-população de itens ao selecionar template deve fazer N chamadas `POST .
 ## Tests
 
 - Testes unitários:
-  - [ ] `POST /api/quotes` com `customer_id` nulo cria orçamento com `customer_id = null` (cliente avulso)
-  - [ ] `POST /api/quotes` chama `next_quote_number` e armazena o número sequencial correto
-  - [ ] `POST .../rooms` com `template_id` válido retorna 201 com `id` do novo ambiente
-  - [ ] `POST .../items` com `unit_price: -5` retorna 400
-  - [ ] `POST .../items` com campos de snapshot (`name`, `unit`, `unit_price`, `quantity`) persiste exatamente esses valores, sem join no catálogo
+  - [x] `POST /api/quotes` com `customer_id` nulo cria orçamento com `customer_id = null` (cliente avulso)
+  - [x] `POST /api/quotes` chama `next_quote_number` e armazena o número sequencial correto
+  - [x] `POST .../rooms` com `template_id` válido retorna 201 com `id` do novo ambiente
+  - [x] `POST .../items` com `unit_price: -5` retorna 400
+  - [x] `POST .../items` com campos de snapshot (`name`, `unit`, `unit_price`, `quantity`) persiste exatamente esses valores, sem join no catálogo
 - Testes de integração:
-  - [ ] Selecionar template "Cozinha" → ambiente criado com os itens do template pré-populados (verificar via `GET /api/quotes/[id]`)
-  - [ ] Alterar preço de item do catálogo após adicionar ao orçamento → `quote_items.unit_price` permanece inalterado
-  - [ ] Avançar para etapa 2 sem selecionar cliente → orçamento criado com `customer_id = null`
-  - [ ] Criação inline de cliente na etapa 1 → cliente persistido em `customers` e associado ao orçamento
+  - [x] Selecionar template "Cozinha" → ambiente criado com os itens do template pré-populados (verificar via `GET /api/quotes/[id]`)
+  - [x] Alterar preço de item do catálogo após adicionar ao orçamento → `quote_items.unit_price` permanece inalterado
+  - [x] Avançar para etapa 2 sem selecionar cliente → orçamento criado com `customer_id = null`
+  - [x] Criação inline de cliente na etapa 1 → cliente persistido em `customers` e associado ao orçamento
 
 ## Success Criteria
 
