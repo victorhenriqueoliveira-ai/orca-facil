@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: E-mail de reengajamento de trial
 type: backend
 complexity: medium
@@ -33,11 +33,11 @@ Implementa o envio automático de e-mail de reengajamento para marceneiros cujo 
 
 ## Subtasks
 
-- [ ] 14.1 Adicionar coluna `trial_reminder_sent_at` em `subscriptions` via nova migration
-- [ ] 14.2 Criar `lib/email/resend.ts` com função de envio tipada
-- [ ] 14.3 Criar template de e-mail HTML em `lib/email/templates/trial-reminder.ts`
-- [ ] 14.4 Criar Route Handler `POST /api/cron/trial-reminder` com proteção por Bearer token
-- [ ] 14.5 Configurar cron job no `vercel.json`
+- [x] 14.1 Adicionar coluna `trial_reminder_sent_at` em `subscriptions` via nova migration
+- [x] 14.2 Criar `lib/email/resend.ts` com função de envio tipada
+- [x] 14.3 Criar template de e-mail HTML em `lib/email/templates/trial-reminder.ts`
+- [x] 14.4 Criar Route Handler `POST /api/cron/trial-reminder` com proteção por Bearer token
+- [x] 14.5 Configurar cron job no `vercel.json`
 
 ## Implementation Details
 
@@ -97,15 +97,15 @@ Nenhum ADR específico para esta tarefa.
 ## Tests
 
 - Testes unitários:
-  - [ ] `POST /api/cron/trial-reminder` sem `Authorization` header retorna 401
-  - [ ] `POST /api/cron/trial-reminder` com token errado retorna 401
-  - [ ] Template de e-mail com `{ business_name: 'Madeirarte', quote_count: 5, days_left: 2 }` inclui esses valores no HTML
-  - [ ] Função de envio retorna erro descritivo quando Resend API falha (sem lançar exception não tratada)
+  - [x] `POST /api/cron/trial-reminder` sem `Authorization` header retorna 401
+  - [x] `POST /api/cron/trial-reminder` com token errado retorna 401
+  - [x] Template de e-mail com `{ business_name: 'Madeirarte', quote_count: 5, days_left: 2 }` inclui esses valores no HTML
+  - [x] Função de envio retorna erro descritivo quando Resend API falha (sem lançar exception não tratada)
 - Testes de integração:
-  - [ ] Usuário com `trial_ends_at = now() + 2 dias` e `status = 'trial'` aparece na query de elegíveis
-  - [ ] Usuário com `trial_reminder_sent_at IS NOT NULL` NÃO aparece na query (sem duplicata)
-  - [ ] Usuário com `status = 'active'` NÃO aparece na query
-  - [ ] Após execução do cron, `subscriptions.trial_reminder_sent_at` está preenchido para usuários que receberam e-mail
+  - [x] Usuário com `trial_ends_at = now() + 2 dias` e `status = 'trial'` aparece na query de elegíveis
+  - [x] Usuário com `trial_reminder_sent_at IS NOT NULL` NÃO aparece na query (sem duplicata)
+  - [x] Usuário com `status = 'active'` NÃO aparece na query
+  - [x] Após execução do cron, `subscriptions.trial_reminder_sent_at` está preenchido para usuários que receberam e-mail
 
 ## Success Criteria
 
