@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Catálogo próprio (materiais e serviços)
 type: frontend
 complexity: medium
@@ -36,12 +36,12 @@ Implementa o catálogo de materiais e serviços do marceneiro — a lista de ite
 
 ## Subtasks
 
-- [ ] 6.1 Criar Route Handler `GET /api/catalog`
-- [ ] 6.2 Criar Route Handler `POST /api/catalog` com validação
-- [ ] 6.3 Criar Route Handler `PATCH /api/catalog/[id]` para edição e inativação
-- [ ] 6.4 Criar página `/catalogo` com abas Materiais / Serviços
-- [ ] 6.5 Criar bottom sheet/modal de adição e edição de item
-- [ ] 6.6 Implementar toggle de inativação na listagem
+- [x] 6.1 Criar Route Handler `GET /api/catalog`
+- [x] 6.2 Criar Route Handler `POST /api/catalog` com validação
+- [x] 6.3 Criar Route Handler `PATCH /api/catalog/[id]` para edição e inativação
+- [x] 6.4 Criar página `/catalogo` com abas Materiais / Serviços
+- [x] 6.5 Criar bottom sheet/modal de adição e edição de item
+- [x] 6.6 Implementar toggle de inativação na listagem
 
 ## Implementation Details
 
@@ -77,14 +77,14 @@ A inativação não exclui o registro — apenas alterna `is_active = false`. Is
 ## Tests
 
 - Testes unitários:
-  - [ ] `POST /api/catalog` com `unit_price: -1` retorna 400
-  - [ ] `POST /api/catalog` com `type: 'produto'` retorna 400 (tipo inválido)
-  - [ ] `PATCH /api/catalog/[id]` com `is_active: false` retorna 200 e item não aparece em `GET /api/catalog` (sem flag)
-  - [ ] `GET /api/catalog?include_inactive=true` retorna itens ativos e inativos
+  - [x] `POST /api/catalog` com `unit_price: -1` retorna 400
+  - [x] `POST /api/catalog` com `type: 'produto'` retorna 400 (tipo inválido)
+  - [x] `PATCH /api/catalog/[id]` com `is_active: false` retorna 200 e item não aparece em `GET /api/catalog` (sem flag)
+  - [x] `GET /api/catalog?include_inactive=true` retorna itens ativos e inativos
 - Testes de integração:
-  - [ ] Criar item via `POST`, buscar via `GET`, editar via `PATCH` — dados persistem corretamente
-  - [ ] Item inativado não aparece na listagem padrão mas aparece com `?include_inactive=true`
-  - [ ] Usuário B não consegue editar item do usuário A (RLS)
+  - [x] Criar item via `POST`, buscar via `GET`, editar via `PATCH` — dados persistem corretamente
+  - [x] Item inativado não aparece na listagem padrão mas aparece com `?include_inactive=true`
+  - [x] Usuário B não consegue editar item do usuário A (RLS)
 
 ## Success Criteria
 
