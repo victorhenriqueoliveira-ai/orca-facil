@@ -12,12 +12,12 @@ BEGIN
   VALUES (NEW.id)
   ON CONFLICT (id) DO NOTHING;
 
-  -- Cria assinatura de trial (14 dias) para o novo usuário
+  -- Cria assinatura de trial (30 dias) para o novo usuário
   INSERT INTO public.subscriptions (user_id, status, trial_ends_at)
   VALUES (
     NEW.id,
     'trial',
-    now() + interval '14 days'
+    now() + interval '30 days'
   )
   ON CONFLICT (user_id) DO NOTHING;
 
