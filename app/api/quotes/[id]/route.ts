@@ -145,12 +145,22 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const { profit_margin_pct, title, notes, version_id } = body;
+  const { profit_margin_pct, title, notes, version_id, status } = body;
 
-  // Atualizar campos do quote (title, notes)
+  // Validar status se fornecido
+  const validStatuses = ["draft", "sent", "accepted", "rejected", "expired"];
+  if (status !== undefined && !validStatuses.includes(status as string)) {
+    return NextResponse.json(
+      { error: `status inválido. Valores permitidos: ${validStatuses.join(", ")}` },
+      { status: 400 }
+    );
+  }
+
+  // Atualizar campos do quote (title, notes, status)
   const quoteUpdates: Record<string, unknown> = {};
   if (typeof title === "string") quoteUpdates.title = title.trim() || null;
   if (typeof notes === "string") quoteUpdates.notes = notes.trim() || null;
+  if (typeof status === "string") quoteUpdates.status = status;
 
   if (Object.keys(quoteUpdates).length > 0) {
     const { error: updateError } = await supabase

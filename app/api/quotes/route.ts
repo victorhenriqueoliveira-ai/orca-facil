@@ -3,6 +3,129 @@ import { createClient } from "@/lib/supabase/server";
 import { getSubscriptionStatus } from "@/lib/subscription/get-status";
 
 /**
+ * GET /api/quotes
+ * Lista orçamentos do usuário autenticado com filtros opcionais e paginação.
+ * Params: ?status=&page=1&limit=20
+ * Guard: permitido para read_only (apenas leitura).
+ */
+export async function GET(request: NextRequest) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const statusFilter = searchParams.get("status") ?? null;
+  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
+  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") ?? "20", 10)));
+  const offset = (page - 1) * limit;
+
+  // Buscar total para paginação
+  let countQuery = supabase
+    .from("quotes")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  if (statusFilter) {
+    countQuery = countQuery.eq("status", statusFilter);
+  }
+
+  const { count, error: countError } = await countQuery;
+
+  if (countError) {
+    return NextResponse.json({ error: countError.message }, { status: 500 });
+  }
+
+  // Buscar orçamentos com dados calculados
+  let dataQuery = supabase
+    .from("quotes")
+    .select(
+      `
+      id,
+      quote_number,
+      title,
+      status,
+      created_at,
+      customers ( id, name ),
+      quote_versions (
+        id,
+        profit_margin_pct,
+        quote_items:quote_rooms ( quote_items ( unit_price, quantity ) )
+      ),
+      quote_pdfs ( storage_path, generated_at )
+    `
+    )
+    .eq("user_id", user.id);
+
+  if (statusFilter) {
+    dataQuery = dataQuery.eq("status", statusFilter);
+  }
+
+  const { data: rawQuotes, error: dataError } = await dataQuery
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (dataError) {
+    return NextResponse.json({ error: dataError.message }, { status: 500 });
+  }
+
+  // Transformar dados para o formato de resposta
+  const quotes = (rawQuotes ?? []).map((q: Record<string, unknown>) => {
+    // Calcular total com margem da última versão
+    const versions = (q.quote_versions as Array<Record<string, unknown>>) ?? [];
+    let total_with_margin = 0;
+
+    if (versions.length > 0) {
+      const version = versions[0] as Record<string, unknown>;
+      const margin = ((version.profit_margin_pct as number) ?? 0) / 100;
+      const rooms = (version.quote_items as Array<Record<string, unknown>>) ?? [];
+      let subtotal = 0;
+      for (const room of rooms) {
+        const items = (room.quote_items as Array<Record<string, unknown>>) ?? [];
+        for (const item of items) {
+          subtotal += ((item.unit_price as number) ?? 0) * ((item.quantity as number) ?? 0);
+        }
+      }
+      total_with_margin = subtotal * (1 + margin);
+    }
+
+    // PDF mais recente
+    const pdfs = (q.quote_pdfs as Array<Record<string, unknown>>) ?? [];
+    const latestPdf = pdfs.sort(
+      (a, b) =>
+        new Date(b.generated_at as string).getTime() -
+        new Date(a.generated_at as string).getTime()
+    )[0];
+
+    const customer = q.customers as Record<string, unknown> | null;
+
+    return {
+      id: q.id,
+      quote_number: q.quote_number,
+      title: q.title ?? null,
+      status: q.status,
+      customer_name: customer ? (customer.name as string) : null,
+      customer_id: customer ? (customer.id as string) : null,
+      total_with_margin: Math.round(total_with_margin * 100) / 100,
+      created_at: q.created_at,
+      has_pdf: !!latestPdf,
+    };
+  });
+
+  return NextResponse.json({
+    quotes,
+    total: count ?? 0,
+    page,
+    limit,
+  });
+}
+
+/**
  * POST /api/quotes
  * Cria um novo orçamento com a primeira versão.
  * Chama next_quote_number(user_id) para gerar número sequencial.
