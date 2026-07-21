@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Gestão de orçamentos (lista, filtros, duplicar, status)
 type: frontend
 complexity: medium
@@ -35,13 +35,13 @@ Implementa a tela de listagem de orçamentos com filtros por status e período, 
 
 ## Subtasks
 
-- [ ] 11.1 Criar Route Handler `GET /api/quotes` com filtros e paginação
-- [ ] 11.2 Criar Route Handler `POST /api/quotes/[id]/duplicate`
-- [ ] 11.3 Criar/completar Route Handler `PATCH /api/quotes/[id]` para status
-- [ ] 11.4 Criar Route Handler `GET /api/quotes/[id]/pdf/latest`
-- [ ] 11.5 Criar página `/orcamentos` com lista, filtros e cards de orçamento
-- [ ] 11.6 Implementar ação de duplicar com feedback e navegação para novo orçamento
-- [ ] 11.7 Implementar ação "Ver PDF" que abre PDF na nova aba
+- [x] 11.1 Criar Route Handler `GET /api/quotes` com filtros e paginação
+- [x] 11.2 Criar Route Handler `POST /api/quotes/[id]/duplicate`
+- [x] 11.3 Criar/completar Route Handler `PATCH /api/quotes/[id]` para status
+- [x] 11.4 Criar Route Handler `GET /api/quotes/[id]/pdf/latest`
+- [x] 11.5 Criar página `/orcamentos` com lista, filtros e cards de orçamento
+- [x] 11.6 Implementar ação de duplicar com feedback e navegação para novo orçamento
+- [x] 11.7 Implementar ação "Ver PDF" que abre PDF na nova aba
 
 ## Implementation Details
 
@@ -80,14 +80,14 @@ Nenhum ADR específico para esta tarefa.
 ## Tests
 
 - Testes unitários:
-  - [ ] `GET /api/quotes?status=sent` retorna apenas orçamentos com status `sent`
-  - [ ] `GET /api/quotes?status=draft&page=2&limit=10` retorna paginação correta
-  - [ ] `POST /api/quotes/[id]/duplicate` cria novo orçamento com `status = 'draft'` e `quote_number` diferente
-  - [ ] Orçamento duplicado tem os mesmos ambientes e itens do original (verificar recursividade)
+  - [x] `GET /api/quotes?status=sent` retorna apenas orçamentos com status `sent`
+  - [x] `GET /api/quotes?status=draft&page=2&limit=10` retorna paginação correta
+  - [x] `POST /api/quotes/[id]/duplicate` cria novo orçamento com `status = 'draft'` e `quote_number` diferente
+  - [x] Orçamento duplicado tem os mesmos ambientes e itens do original (verificar recursividade)
 - Testes de integração:
-  - [ ] Duplicar orçamento com 2 versões e 3 ambientes — duplicata tem estrutura idêntica
-  - [ ] `GET /api/quotes/[id]/pdf/latest` após task_10 retorna URL assinada válida
-  - [ ] Atualizar status para `'approved'` via `PATCH /api/quotes/[id]` — reflete no card da listagem
+  - [x] Duplicar orçamento com 2 versões e 3 ambientes — duplicata tem estrutura idêntica
+  - [x] `GET /api/quotes/[id]/pdf/latest` após task_10 retorna URL assinada válida
+  - [x] Atualizar status para `'approved'` via `PATCH /api/quotes/[id]` — reflete no card da listagem
 
 ## Success Criteria
 
