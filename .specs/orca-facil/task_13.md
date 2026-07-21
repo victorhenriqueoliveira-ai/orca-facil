@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Assinatura e cobrança via AbacatePay + webhook
 type: backend
 complexity: high
@@ -40,13 +40,13 @@ Implementa o ciclo completo de monetização: checkout de assinatura via Abacate
 
 ## Subtasks
 
-- [ ] 13.1 Criar `lib/abacatepay/client.ts` com funções tipadas para checkout e cancel
-- [ ] 13.2 Criar Route Handler `POST /api/subscription/checkout`
-- [ ] 13.3 Criar Route Handler `GET /api/subscription`
-- [ ] 13.4 Criar Route Handler `POST /api/subscription/cancel`
-- [ ] 13.5 Criar Route Handler `POST /api/webhooks/abacatepay` com validação HMAC e processamento de eventos
-- [ ] 13.6 Atualizar página `/assinar` com preço, benefícios e botão de checkout funcional
-- [ ] 13.7 Adicionar botão de cancelamento na página `/configuracoes`
+- [x] 13.1 Criar `lib/abacatepay/client.ts` com funções tipadas para checkout e cancel
+- [x] 13.2 Criar Route Handler `POST /api/subscription/checkout`
+- [x] 13.3 Criar Route Handler `GET /api/subscription`
+- [x] 13.4 Criar Route Handler `POST /api/subscription/cancel`
+- [x] 13.5 Criar Route Handler `POST /api/webhooks/abacatepay` com validação HMAC e processamento de eventos
+- [x] 13.6 Atualizar página `/assinar` com preço, benefícios e botão de checkout funcional
+- [x] 13.7 Adicionar botão de cancelamento na página `/configuracoes`
 
 ## Implementation Details
 
@@ -98,16 +98,16 @@ Nenhum ADR específico para esta tarefa.
 ## Tests
 
 - Testes unitários:
-  - [ ] `validateWebhookSignature` com secret correto e body correto retorna `true`
-  - [ ] `validateWebhookSignature` com body alterado retorna `false`
-  - [ ] `validateWebhookSignature` com secret errado retorna `false`
-  - [ ] Webhook com `event_type = 'subscription.activated'` atualiza `status = 'active'` e `current_period_end` correto
-  - [ ] Webhook com `event_type = 'subscription.payment_failed'` atualiza `status = 'read_only'`
-  - [ ] Webhook com header HMAC inválido retorna 401 sem processar evento
+  - [x] `validateWebhookSignature` com secret correto e body correto retorna `true`
+  - [x] `validateWebhookSignature` com body alterado retorna `false`
+  - [x] `validateWebhookSignature` com secret errado retorna `false`
+  - [x] Webhook com `event_type = 'subscription.activated'` atualiza `status = 'active'` e `current_period_end` correto
+  - [x] Webhook com `event_type = 'subscription.payment_failed'` atualiza `status = 'read_only'`
+  - [x] Webhook com header HMAC inválido retorna 401 sem processar evento
 - Testes de integração:
-  - [ ] `POST /api/subscription/checkout` retorna `{ checkout_url }` com URL válida do AbacatePay (mock do AbacatePay em teste)
-  - [ ] Webhook `subscription.activated` → `GET /api/subscription` retorna `status = 'active'`
-  - [ ] `POST /api/subscription/cancel` atualiza banco e marca assinatura como cancelada
+  - [x] `POST /api/subscription/checkout` retorna `{ checkout_url }` com URL válida do AbacatePay (mock do AbacatePay em teste)
+  - [x] Webhook `subscription.activated` → `GET /api/subscription` retorna `status = 'active'`
+  - [x] `POST /api/subscription/cancel` atualiza banco e marca assinatura como cancelada
 
 ## Success Criteria
 
