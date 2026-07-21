@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { useSubscription } from "@/components/subscription-provider";
 
 interface Perfil {
   id: string;
@@ -15,11 +16,8 @@ interface Perfil {
   quote_validity_days: number | null;
 }
 
-/**
- * Página de configurações da marcenaria.
- * Mobile-first: campos grandes e touch-friendly.
- */
 export default function ConfiguracoesPage() {
+  const subscription = useSubscription();
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [logoSignedUrl, setLogoSignedUrl] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(true);
@@ -29,6 +27,9 @@ export default function ConfiguracoesPage() {
     tipo: "sucesso" | "erro";
     texto: string;
   } | null>(null);
+  const [cancelando, setCancelando] = useState(false);
+  const [cancelado, setCancelado] = useState(false);
+  const [erroCancelamento, setErroCancelamento] = useState<string | null>(null);
 
   const [businessName, setBusinessName] = useState("");
   const [city, setCity] = useState("");
@@ -144,12 +145,45 @@ export default function ConfiguracoesPage() {
       });
     } finally {
       setUploadandoLogo(false);
-      // Limpar o input para permitir reupload do mesmo arquivo
       if (inputFileRef.current) {
         inputFileRef.current.value = "";
       }
     }
   }
+
+  async function handleCancelarAssinatura() {
+    if (
+      !window.confirm(
+        "Tem certeza que deseja cancelar sua assinatura? Você perderá o acesso completo ao final do período atual."
+      )
+    ) {
+      return;
+    }
+
+    setCancelando(true);
+    setErroCancelamento(null);
+
+    try {
+      const res = await fetch("/api/subscription/cancel", { method: "POST" });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(
+          (body as { error?: string }).error ?? "Erro ao cancelar assinatura"
+        );
+      }
+
+      setCancelado(true);
+    } catch (err) {
+      setErroCancelamento(
+        err instanceof Error ? err.message : "Erro inesperado"
+      );
+    } finally {
+      setCancelando(false);
+    }
+  }
+
+  const isActive = subscription?.status === "active";
 
   if (carregando) {
     return (
@@ -163,7 +197,6 @@ export default function ConfiguracoesPage() {
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Configurações</h1>
 
-      {/* Mensagem de feedback */}
       {mensagem && (
         <div
           role="alert"
@@ -184,7 +217,6 @@ export default function ConfiguracoesPage() {
         </h2>
 
         <div className="flex flex-col items-center gap-4">
-          {/* Preview da logo */}
           {logoSignedUrl ? (
             <div className="relative w-32 h-32 rounded-xl overflow-hidden border-2 border-gray-200 bg-gray-50">
               <Image
@@ -206,7 +238,6 @@ export default function ConfiguracoesPage() {
             </div>
           )}
 
-          {/* Botão de upload */}
           <div>
             <input
               ref={inputFileRef}
@@ -225,13 +256,11 @@ export default function ConfiguracoesPage() {
                   : "bg-blue-50 text-blue-700 hover:bg-blue-100 active:bg-blue-200 border border-blue-200"
               }`}
             >
-              {uploadandoLogo ? (
-                "Enviando..."
-              ) : logoSignedUrl ? (
-                "Substituir logo"
-              ) : (
-                "Adicionar logo"
-              )}
+              {uploadandoLogo
+                ? "Enviando..."
+                : logoSignedUrl
+                  ? "Substituir logo"
+                  : "Adicionar logo"}
             </label>
           </div>
           <p className="text-xs text-gray-500 text-center">
@@ -391,7 +420,6 @@ export default function ConfiguracoesPage() {
           </div>
         </section>
 
-        {/* Botão de salvar */}
         <button
           type="submit"
           disabled={salvando}
@@ -404,6 +432,76 @@ export default function ConfiguracoesPage() {
           {salvando ? "Salvando..." : "Salvar"}
         </button>
       </form>
+
+      {/* Seção: Assinatura */}
+      <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+        <h2 className="text-lg font-semibold text-gray-800">Assinatura</h2>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">Status:</span>
+          <span
+            className={`text-sm font-medium px-2 py-0.5 rounded-full ${
+              isActive
+                ? "bg-green-100 text-green-700"
+                : subscription?.status === "trial"
+                  ? "bg-blue-100 text-blue-700"
+                  : subscription?.status === "cancelled"
+                    ? "bg-gray-100 text-gray-600"
+                    : "bg-red-100 text-red-700"
+            }`}
+          >
+            {isActive
+              ? "Ativo"
+              : subscription?.status === "trial"
+                ? "Trial"
+                : subscription?.status === "cancelled"
+                  ? "Cancelado"
+                  : "Somente leitura"}
+          </span>
+        </div>
+
+        {isActive && !cancelado && (
+          <div className="pt-2 border-t border-gray-100 space-y-3">
+            <p className="text-sm text-gray-500">
+              Você pode cancelar sua assinatura a qualquer momento. O acesso
+              completo continua até o final do período pago.
+            </p>
+
+            {erroCancelamento && (
+              <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+                {erroCancelamento}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handleCancelarAssinatura}
+              disabled={cancelando}
+              className="text-sm text-red-600 border border-red-300 rounded-lg px-4 py-2 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {cancelando ? "Cancelando..." : "Cancelar assinatura"}
+            </button>
+          </div>
+        )}
+
+        {cancelado && (
+          <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-700">
+            Assinatura cancelada com sucesso. Seu acesso completo permanece até
+            o fim do período atual.
+          </div>
+        )}
+
+        {!isActive && subscription?.status === "trial" && (
+          <div className="pt-2">
+            <a
+              href="/assinar"
+              className="text-sm text-blue-600 underline hover:text-blue-700"
+            >
+              Assinar o plano Pro — R$ 49/mês
+            </a>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
