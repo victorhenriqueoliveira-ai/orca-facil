@@ -4,6 +4,7 @@ import { useReducer } from "react";
 import { useRouter } from "next/navigation";
 import { StepClient } from "@/components/wizard/step-client";
 import { StepRooms, type Room } from "@/components/wizard/step-rooms";
+import { StepReview } from "@/components/wizard/step-review";
 
 // ----------------------------------------------------------------
 // Estado do wizard
@@ -208,33 +209,13 @@ export default function NovoOrcamentoPage() {
           />
         )}
 
-        {state.step === 3 && (
-          <div className="p-4">
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">Resumo</h2>
-            <p className="text-sm text-gray-500">
-              Etapa 3 será implementada na task_09.
-            </p>
-            <div className="mt-4 border border-gray-200 rounded-lg p-4">
-              <p className="text-sm text-gray-700">
-                Orçamento criado com sucesso!
-              </p>
-              {state.quoteNumber && (
-                <p className="text-sm font-semibold text-gray-800 mt-1">
-                  Orçamento #{state.quoteNumber}
-                </p>
-              )}
-              <p className="text-sm text-gray-500 mt-1">
-                {state.rooms.length} ambiente(s) adicionado(s).
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard")}
-              className="mt-4 w-full bg-blue-600 text-white rounded-lg px-4 py-3 text-sm font-semibold hover:bg-blue-700 transition-colors"
-            >
-              Ir para o Dashboard
-            </button>
-          </div>
+        {state.step === 3 && state.quoteId && state.versionId && (
+          <StepReview
+            quoteId={state.quoteId}
+            versionId={state.versionId}
+            onNext={() => dispatch({ type: "GO_TO_STEP", payload: 4 })}
+            onBack={() => dispatch({ type: "GO_TO_STEP", payload: 2 })}
+          />
         )}
 
         {state.step === 4 && (
