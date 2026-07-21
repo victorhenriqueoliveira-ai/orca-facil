@@ -295,6 +295,45 @@ const STYLES = `
     padding: 4px 10px;
     border-radius: 4px;
   }
+  .comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+  }
+  .comparison-table th {
+    background: #1e40af;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: left;
+    padding: 8px 12px;
+    border: 1px solid #1e3a8a;
+  }
+  .comparison-table th.version-col {
+    text-align: right;
+  }
+  .comparison-table td {
+    padding: 7px 12px;
+    font-size: 12px;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+  }
+  .comparison-table td.amount {
+    text-align: right;
+    font-weight: 500;
+  }
+  .comparison-table tr:nth-child(even) td {
+    background: #f9fafb;
+  }
+  .comparison-table tr.total-row td {
+    font-weight: bold;
+    color: #1e40af;
+    background: #eff6ff;
+    border-top: 2px solid #bfdbfe;
+  }
+  .comparison-table tr.total-row td.amount {
+    text-align: right;
+  }
 `;
 
 // ----------------------------------------------------------------
@@ -551,12 +590,85 @@ function escapeHtml(str: string): string {
 }
 
 // ----------------------------------------------------------------
+// Template: comparative table for multi-version PDFs
+// ----------------------------------------------------------------
+
+function renderComparativeTable(versions: PdfVersion[]): string {
+  if (versions.length <= 1) return "";
+
+  // Collect all unique room names across all versions (preserving order of appearance)
+  const allRoomNames: string[] = [];
+  for (const v of versions) {
+    for (const r of v.rooms) {
+      if (!allRoomNames.includes(r.name)) {
+        allRoomNames.push(r.name);
+      }
+    }
+  }
+
+  // Build header row
+  const versionHeaders = versions
+    .map((v) => `<th class="version-col">${escapeHtml(v.name)}</th>`)
+    .join("");
+
+  // Build data rows — one per unique room name
+  const rowsHtml = allRoomNames
+    .map((roomName) => {
+      const cells = versions
+        .map((v) => {
+          const room = v.rooms.find((r) => r.name === roomName);
+          if (!room) return `<td class="amount">—</td>`;
+          const subtotal = room.items.reduce(
+            (acc, item) => acc + item.unit_price * item.quantity,
+            0
+          );
+          const total = subtotal * (1 + v.profit_margin_pct / 100);
+          return `<td class="amount">${formatBRL(total)}</td>`;
+        })
+        .join("");
+
+      return `<tr><td>${escapeHtml(roomName)}</td>${cells}</tr>`;
+    })
+    .join("");
+
+  // Build totals row
+  const totalCells = versions
+    .map((v) => {
+      const totals = calculateTotal(v.rooms, v.profit_margin_pct);
+      return `<td class="amount">${formatBRL(totals.grandTotal)}</td>`;
+    })
+    .join("");
+
+  return `
+    <div class="section">
+      <div class="section-title">Comparativo de Versões</div>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Ambiente</th>
+            ${versionHeaders}
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+          <tr class="total-row">
+            <td><strong>Total</strong></td>
+            ${totalCells}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ----------------------------------------------------------------
 // Main: generatePdfHtml
 // ----------------------------------------------------------------
 
 export function generatePdfHtml(data: PdfQuoteData, mode: PdfMode): string {
   const headerHtml = renderHeader(data);
   const clientHtml = renderClient(data.customer);
+  const comparativeHtml = renderComparativeTable(data.versions);
   const totalsHtml = renderTotals(data.versions);
   const footerHtml = renderFooter(data);
 
@@ -603,6 +715,7 @@ export function generatePdfHtml(data: PdfQuoteData, mode: PdfMode): string {
 <body>
   ${headerHtml}
   ${clientHtml}
+  ${comparativeHtml}
   <div class="section">
     <div class="section-title">${roomsSectionTitle}</div>
     ${versionsHtml}

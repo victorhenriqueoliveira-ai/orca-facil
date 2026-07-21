@@ -24,18 +24,35 @@ export interface Room {
   items: RoomItem[];
 }
 
+export interface QuoteVersion {
+  id: string;
+  name: string;
+}
+
 export interface StepRoomsProps {
   quoteId: string;
   versionId: string;
+  versions?: QuoteVersion[];
   onNext: (rooms: Room[]) => void;
   onBack: () => void;
+  onVersionChange?: (versionId: string) => void;
+  onVersionCreated?: (version: QuoteVersion) => void;
 }
 
 /**
  * Etapa 2 do wizard: listagem de ambientes e adição de itens.
  * Botão "Avançar" desabilitado enquanto não houver ao menos 1 ambiente com 1 item.
+ * Exibe abas de versões horizontais quando há múltiplas versões.
  */
-export function StepRooms({ quoteId, versionId, onNext, onBack }: StepRoomsProps) {
+export function StepRooms({
+  quoteId,
+  versionId,
+  versions = [],
+  onNext,
+  onBack,
+  onVersionChange,
+  onVersionCreated,
+}: StepRoomsProps) {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [templatesLoading, setTemplatesLoading] = useState(false);
@@ -44,7 +61,18 @@ export function StepRooms({ quoteId, versionId, onNext, onBack }: StepRoomsProps
   const [error, setError] = useState<string | null>(null);
   const [addingRoom, setAddingRoom] = useState(false);
 
+  // State for adding new version
+  const [showAddVersionModal, setShowAddVersionModal] = useState(false);
+  const [newVersionName, setNewVersionName] = useState("");
+  const [addingVersion, setAddingVersion] = useState(false);
+  const [versionError, setVersionError] = useState<string | null>(null);
+
   const canAdvance = rooms.some((r) => r.items.length > 0);
+
+  // Reset rooms when version changes
+  useEffect(() => {
+    setRooms([]);
+  }, [versionId]);
 
   useEffect(() => {
     setTemplatesLoading(true);
@@ -54,6 +82,44 @@ export function StepRooms({ quoteId, versionId, onNext, onBack }: StepRoomsProps
       .catch(() => setTemplates([]))
       .finally(() => setTemplatesLoading(false));
   }, []);
+
+  async function handleAddVersion() {
+    if (!newVersionName.trim()) {
+      setVersionError("Nome da versão é obrigatório");
+      return;
+    }
+
+    setAddingVersion(true);
+    setVersionError(null);
+
+    try {
+      const res = await fetch(`/api/quotes/${quoteId}/versions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newVersionName.trim() }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        setVersionError(err.error ?? "Erro ao criar versão");
+        return;
+      }
+
+      const { version_id } = await res.json();
+      const newVersion: QuoteVersion = {
+        id: version_id,
+        name: newVersionName.trim(),
+      };
+
+      setNewVersionName("");
+      setShowAddVersionModal(false);
+      onVersionCreated?.(newVersion);
+    } catch {
+      setVersionError("Erro ao criar versão");
+    } finally {
+      setAddingVersion(false);
+    }
+  }
 
   async function handleAddRoom(templateId: string | null, templateName?: string) {
     setAddingRoom(true);
@@ -136,6 +202,8 @@ export function StepRooms({ quoteId, versionId, onNext, onBack }: StepRoomsProps
     setAddingItemToRoomId(null);
   }
 
+  const activeVersionName = versions.find((v) => v.id === versionId)?.name ?? "Padrão";
+
   return (
     <div className="flex flex-col gap-6 p-4">
       <div>
@@ -144,6 +212,108 @@ export function StepRooms({ quoteId, versionId, onNext, onBack }: StepRoomsProps
           Adicione os ambientes e seus itens ao orçamento.
         </p>
       </div>
+
+      {/* Version tabs */}
+      {(versions.length > 1 || onVersionChange) && (
+        <div className="flex items-center gap-1 border-b border-gray-200 overflow-x-auto pb-0">
+          {versions.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              onClick={() => {
+                if (v.id !== versionId) {
+                  onVersionChange?.(v.id);
+                }
+              }}
+              className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                v.id === versionId
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              {v.name}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              setShowAddVersionModal(true);
+              setVersionError(null);
+              setNewVersionName("");
+            }}
+            className="px-3 py-2 text-sm font-medium text-gray-400 hover:text-blue-600 transition-colors border-b-2 border-transparent whitespace-nowrap"
+            title="Adicionar versão"
+          >
+            +
+          </button>
+        </div>
+      )}
+
+      {/* Active version label when only one version and no tabs shown */}
+      {versions.length <= 1 && !onVersionChange && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">Versão: <strong>{activeVersionName}</strong></span>
+          <button
+            type="button"
+            onClick={() => {
+              setShowAddVersionModal(true);
+              setVersionError(null);
+              setNewVersionName("");
+            }}
+            className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            + Nova versão
+          </button>
+        </div>
+      )}
+
+      {/* Add version modal */}
+      {showAddVersionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm mx-4">
+            <h3 className="text-base font-semibold text-gray-800 mb-4">Nova versão do orçamento</h3>
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1">
+                  Nome da versão
+                </label>
+                <input
+                  type="text"
+                  value={newVersionName}
+                  onChange={(e) => setNewVersionName(e.target.value)}
+                  placeholder='Ex: Premium, Econômica...'
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleAddVersion();
+                    if (e.key === "Escape") setShowAddVersionModal(false);
+                  }}
+                  autoFocus
+                />
+              </div>
+              {versionError && (
+                <p className="text-xs text-red-600">{versionError}</p>
+              )}
+              <div className="flex gap-2 mt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowAddVersionModal(false)}
+                  className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddVersion}
+                  disabled={addingVersion || !newVersionName.trim()}
+                  className="flex-1 bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  {addingVersion ? "Criando..." : "Criar versão"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <p className="text-sm text-red-600 bg-red-50 rounded-lg p-3">{error}</p>

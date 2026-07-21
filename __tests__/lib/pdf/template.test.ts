@@ -231,4 +231,121 @@ describe("generatePdfHtml", () => {
     expect(html).toContain("Sala");
     expect(html).toContain("Quarto Master");
   });
+
+  // ----------------------------------------------------------------
+  // Tabela comparativa multi-versão (task_12)
+  // ----------------------------------------------------------------
+
+  it("com 2 version_ids: inclui tabela comparativa com 2 colunas de versão", () => {
+    const data = makeQuoteData({
+      versions: [
+        {
+          id: "v1",
+          name: "Padrão",
+          profit_margin_pct: 0,
+          rooms: [
+            {
+              id: "r1",
+              name: "Cozinha",
+              items: [{ id: "i1", name: "Armário", unit: "un", unit_price: 5000, quantity: 1 }],
+            },
+          ],
+        },
+        {
+          id: "v2",
+          name: "Premium",
+          profit_margin_pct: 0,
+          rooms: [
+            {
+              id: "r2",
+              name: "Cozinha",
+              items: [{ id: "i2", name: "Armário Premium", unit: "un", unit_price: 8000, quantity: 1 }],
+            },
+          ],
+        },
+      ],
+    });
+
+    const html = generatePdfHtml(data, "summary");
+
+    // Should have comparative table section
+    expect(html).toContain("Comparativo de Versões");
+    expect(html).toContain("comparison-table");
+
+    // Should have both version names as column headers
+    expect(html).toContain("Padrão");
+    expect(html).toContain("Premium");
+
+    // Should have room name in the table
+    expect(html).toContain("Cozinha");
+  });
+
+  it("com 1 version_id: NÃO inclui tabela comparativa", () => {
+    const data = makeQuoteData({
+      versions: [
+        {
+          id: "v1",
+          name: "Padrão",
+          profit_margin_pct: 0,
+          rooms: [
+            {
+              id: "r1",
+              name: "Sala",
+              items: [{ id: "i1", name: "Armário", unit: "un", unit_price: 1000, quantity: 1 }],
+            },
+          ],
+        },
+      ],
+    });
+
+    const html = generatePdfHtml(data, "summary");
+
+    // Should NOT have comparative table section
+    expect(html).not.toContain("Comparativo de Versões");
+    // Should not have the table DOM element (CSS class in styles is OK, but no <table> with that class)
+    expect(html).not.toContain('<table class="comparison-table"');
+  });
+
+  it("tabela comparativa com 2 versões mostra totais lado a lado", () => {
+    const data = makeQuoteData({
+      versions: [
+        {
+          id: "v1",
+          name: "Versão A",
+          profit_margin_pct: 0,
+          rooms: [
+            {
+              id: "r1",
+              name: "Quarto",
+              items: [{ id: "i1", name: "Cama", unit: "un", unit_price: 3000, quantity: 1 }],
+            },
+          ],
+        },
+        {
+          id: "v2",
+          name: "Versão B",
+          profit_margin_pct: 0,
+          rooms: [
+            {
+              id: "r2",
+              name: "Quarto",
+              items: [{ id: "i2", name: "Cama Premium", unit: "un", unit_price: 5000, quantity: 1 }],
+            },
+          ],
+        },
+      ],
+    });
+
+    const html = generatePdfHtml(data, "summary");
+
+    // Both version names in comparison table headers
+    expect(html).toContain("Versão A");
+    expect(html).toContain("Versão B");
+
+    // Room name in table
+    expect(html).toContain("Quarto");
+
+    // Total row should be present
+    expect(html).toContain("total-row");
+  });
 });

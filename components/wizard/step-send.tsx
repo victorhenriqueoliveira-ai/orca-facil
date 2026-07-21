@@ -1,14 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // ----------------------------------------------------------------
 // Types
 // ----------------------------------------------------------------
 
+export interface QuoteVersionOption {
+  id: string;
+  name: string;
+}
+
 export interface StepSendProps {
   quoteId: string;
   versionId: string;
+  versions?: QuoteVersionOption[];
   customerName?: string;
   onBack: () => void;
 }
@@ -19,22 +25,50 @@ type SendState = "idle" | "generating" | "done" | "error";
 // StepSend — Etapa 4 do wizard: Gerar PDF e enviar pelo WhatsApp
 // ----------------------------------------------------------------
 
-export function StepSend({ quoteId, versionId, customerName, onBack }: StepSendProps) {
+export function StepSend({ quoteId, versionId, versions = [], customerName, onBack }: StepSendProps) {
   const [state, setState] = useState<SendState>("idle");
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mode, setMode] = useState<"summary" | "detailed">("summary");
+
+  // Version selection: default all selected
+  // If no versions provided, fall back to [{ id: versionId, name: 'Padrão' }]
+  const allVersions: QuoteVersionOption[] =
+    versions.length > 0 ? versions : [{ id: versionId, name: "Padrão" }];
+
+  const [selectedVersionIds, setSelectedVersionIds] = useState<string[]>(
+    allVersions.map((v) => v.id)
+  );
+
+  // When versions list changes (e.g. new version was added), update selection
+  useEffect(() => {
+    setSelectedVersionIds(allVersions.map((v) => v.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [versions.length]);
+
+  function toggleVersion(id: string) {
+    setSelectedVersionIds((prev) => {
+      if (prev.includes(id)) {
+        // Prevent deselecting all
+        if (prev.length <= 1) return prev;
+        return prev.filter((v) => v !== id);
+      }
+      return [...prev, id];
+    });
+  }
 
   async function handleGeneratePdf() {
     setState("generating");
     setErrorMessage(null);
     setSignedUrl(null);
 
+    const versionIds = selectedVersionIds.length > 0 ? selectedVersionIds : [versionId];
+
     try {
       const res = await fetch(`/api/quotes/${quoteId}/pdf`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode, version_ids: [versionId] }),
+        body: JSON.stringify({ mode, version_ids: versionIds }),
       });
 
       if (!res.ok) {
@@ -55,7 +89,6 @@ export function StepSend({ quoteId, versionId, customerName, onBack }: StepSendP
     if (!signedUrl) return;
 
     const name = customerName ?? "cliente";
-    const text = `Segue o orçamento da ${name}: ${encodeURIComponent(signedUrl)}`;
     const waUrl = `https://wa.me/?text=Segue+o+orçamento+da+${encodeURIComponent(name)}%3A+${encodeURIComponent(signedUrl)}`;
 
     // Try Web Share API first (mobile-friendly)
@@ -72,9 +105,6 @@ export function StepSend({ quoteId, versionId, customerName, onBack }: StepSendP
         });
       return;
     }
-
-    // Suppress unused variable warning
-    void text;
 
     // Direct WhatsApp link
     window.open(waUrl, "_blank");
@@ -98,43 +128,70 @@ export function StepSend({ quoteId, versionId, customerName, onBack }: StepSendP
 
       {/* Mode selector */}
       {state === "idle" && (
-        <div className="border border-gray-200 rounded-xl bg-white p-4">
-          <p className="text-sm font-medium text-gray-700 mb-3">Modo do PDF</p>
-          <div className="flex flex-col gap-3">
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="radio"
-                name="pdf-mode"
-                value="summary"
-                checked={mode === "summary"}
-                onChange={() => setMode("summary")}
-                className="mt-0.5 accent-blue-600"
-              />
-              <div>
-                <span className="text-sm font-medium text-gray-800">Resumido</span>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Mostra total por ambiente. Ideal para apresentação rápida ao cliente.
-                </p>
-              </div>
-            </label>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="radio"
-                name="pdf-mode"
-                value="detailed"
-                checked={mode === "detailed"}
-                onChange={() => setMode("detailed")}
-                className="mt-0.5 accent-blue-600"
-              />
-              <div>
-                <span className="text-sm font-medium text-gray-800">Detalhado</span>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Lista todos os itens com preços unitários e quantidades.
-                </p>
-              </div>
-            </label>
+        <>
+          <div className="border border-gray-200 rounded-xl bg-white p-4">
+            <p className="text-sm font-medium text-gray-700 mb-3">Modo do PDF</p>
+            <div className="flex flex-col gap-3">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="pdf-mode"
+                  value="summary"
+                  checked={mode === "summary"}
+                  onChange={() => setMode("summary")}
+                  className="mt-0.5 accent-blue-600"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-800">Resumido</span>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Mostra total por ambiente. Ideal para apresentação rápida ao cliente.
+                  </p>
+                </div>
+              </label>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="pdf-mode"
+                  value="detailed"
+                  checked={mode === "detailed"}
+                  onChange={() => setMode("detailed")}
+                  className="mt-0.5 accent-blue-600"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-800">Detalhado</span>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Lista todos os itens com preços unitários e quantidades.
+                  </p>
+                </div>
+              </label>
+            </div>
           </div>
-        </div>
+
+          {/* Version selector (shown when multiple versions exist) */}
+          {allVersions.length > 1 && (
+            <div className="border border-gray-200 rounded-xl bg-white p-4">
+              <p className="text-sm font-medium text-gray-700 mb-3">Versões a incluir no PDF</p>
+              <div className="flex flex-col gap-2">
+                {allVersions.map((v) => (
+                  <label key={v.id} className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedVersionIds.includes(v.id)}
+                      onChange={() => toggleVersion(v.id)}
+                      className="accent-blue-600"
+                    />
+                    <span className="text-sm text-gray-800">{v.name}</span>
+                  </label>
+                ))}
+              </div>
+              {selectedVersionIds.length > 1 && (
+                <p className="text-xs text-blue-600 mt-2">
+                  PDF comparativo será gerado com tabela de comparação entre versões.
+                </p>
+              )}
+            </div>
+          )}
+        </>
       )}
 
       {/* Generating state */}
@@ -224,7 +281,8 @@ export function StepSend({ quoteId, versionId, customerName, onBack }: StepSendP
         <button
           type="button"
           onClick={handleGeneratePdf}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-4 text-base font-semibold transition-colors shadow-sm"
+          disabled={selectedVersionIds.length === 0}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-4 text-base font-semibold transition-colors shadow-sm disabled:opacity-50"
         >
           Gerar PDF
         </button>
