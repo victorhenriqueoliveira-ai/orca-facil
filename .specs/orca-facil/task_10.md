@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Geração de PDF + compartilhamento WhatsApp (Etapa 4)
 type: backend
 complexity: high
@@ -41,12 +41,12 @@ Implementa a etapa 4 do wizard — o coração do produto: o Route Handler que b
 
 ## Subtasks
 
-- [ ] 10.1 Criar template HTML do PDF em `lib/pdf/template.ts` (modo resumido e detalhado)
-- [ ] 10.2 Criar função de geração PDF em `lib/pdf/generate.ts` (Puppeteer + Chromium)
-- [ ] 10.3 Criar Route Handler `POST /api/quotes/[id]/pdf` com fetch de dados, geração e upload
-- [ ] 10.4 Implementar upload para bucket `pdfs` e criação de registro em `quote_pdfs`
-- [ ] 10.5 Implementar etapa 4 do wizard com loading state e botão de WhatsApp
-- [ ] 10.6 Atualizar `quotes.status` para `'sent'` após geração bem-sucedida
+- [x] 10.1 Criar template HTML do PDF em `lib/pdf/template.ts` (modo resumido e detalhado)
+- [x] 10.2 Criar função de geração PDF em `lib/pdf/generate.ts` (Puppeteer + Chromium)
+- [x] 10.3 Criar Route Handler `POST /api/quotes/[id]/pdf` com fetch de dados, geração e upload
+- [x] 10.4 Implementar upload para bucket `pdfs` e criação de registro em `quote_pdfs`
+- [x] 10.5 Implementar etapa 4 do wizard com loading state e botão de WhatsApp
+- [x] 10.6 Atualizar `quotes.status` para `'sent'` após geração bem-sucedida
 
 ## Implementation Details
 
@@ -100,17 +100,17 @@ const browser = await puppeteer.launch({
 ## Tests
 
 - Testes unitários:
-  - [ ] `lib/pdf/template.ts` com dados de orçamento contendo 2 ambientes retorna HTML com 2 seções de ambiente
-  - [ ] Template no modo resumido não inclui tabela de itens individuais
-  - [ ] Template no modo detalhado inclui todos os itens com `unit_price` e `quantity`
-  - [ ] Template com `logo_url = null` renderiza sem tag `<img>` (sem erro)
-  - [ ] Template exibe total formatado como "R$ 1.500,00" (vírgula decimal, ponto milhar)
-  - [ ] `POST /api/quotes/[id]/pdf` com `version_ids` de outro orçamento retorna 403
+  - [x] `lib/pdf/template.ts` com dados de orçamento contendo 2 ambientes retorna HTML com 2 seções de ambiente
+  - [x] Template no modo resumido não inclui tabela de itens individuais
+  - [x] Template no modo detalhado inclui todos os itens com `unit_price` e `quantity`
+  - [x] Template com `logo_url = null` renderiza sem tag `<img>` (sem erro)
+  - [x] Template exibe total formatado como "R$ 1.500,00" (vírgula decimal, ponto milhar)
+  - [x] `POST /api/quotes/[id]/pdf` com `version_ids` de outro orçamento retorna 403
 - Testes de integração:
-  - [ ] `POST /api/quotes/[id]/pdf` retorna `{ signed_url }` com URL válida do Supabase Storage
-  - [ ] `quote_pdfs` contém registro com `storage_path` correto após geração
-  - [ ] `quotes.status` é `'sent'` após geração bem-sucedida
-  - [ ] PDF gerado é acessível via `signed_url` por 7 dias (sem autenticação)
+  - [x] `POST /api/quotes/[id]/pdf` retorna `{ signed_url }` com URL válida do Supabase Storage
+  - [x] `quote_pdfs` contém registro com `storage_path` correto após geração
+  - [x] `quotes.status` é `'sent'` após geração bem-sucedida
+  - [x] PDF gerado é acessível via `signed_url` por 7 dias (sem autenticação)
 
 ## Success Criteria
 
