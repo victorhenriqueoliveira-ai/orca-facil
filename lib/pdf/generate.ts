@@ -1,51 +1,48 @@
 /**
  * Geração de PDF via Puppeteer + @sparticuz/chromium.
- * Detecção automática de ambiente: dev vs produção.
+ * Em produção usa @sparticuz/chromium (serverless).
+ * Em dev usa o Chrome local do sistema operacional.
  */
 
-function devChromePath(): string {
-  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-    return process.env.PUPPETEER_EXECUTABLE_PATH;
+const isProd = process.env.NODE_ENV === "production";
+
+async function launchBrowser() {
+  const puppeteer = await import("puppeteer-core");
+
+  if (isProd) {
+    const chromium = await import("@sparticuz/chromium");
+    return puppeteer.default.launch({
+      args: chromium.default.args,
+      executablePath: await chromium.default.executablePath(),
+      headless: true,
+    });
   }
-  if (process.platform === "darwin") {
-    return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-  }
-  // Linux (CI, Docker)
-  return "/usr/bin/google-chrome-stable";
+
+  // Dev: usa Chrome local (sem args serverless que causam conflito)
+  const executablePath =
+    process.env.PUPPETEER_EXECUTABLE_PATH ??
+    (process.platform === "darwin"
+      ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      : "/usr/bin/google-chrome-stable");
+
+  return puppeteer.default.launch({
+    executablePath,
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
 }
 
 export async function generatePdfFromHtml(html: string): Promise<Buffer> {
-  // Dynamic imports to avoid issues in environments where these aren't available
-  const puppeteer = await import("puppeteer-core");
-  const chromium = await import("@sparticuz/chromium");
-
-  const executablePath =
-    process.env.NODE_ENV === "production"
-      ? await chromium.default.executablePath()
-      : devChromePath();
-
-  const browser = await puppeteer.default.launch({
-    args: chromium.default.args,
-    executablePath,
-    headless: chromium.default.headless as boolean | "new",
-  });
+  const browser = await launchBrowser();
 
   try {
     const page = await browser.newPage();
-
     await page.setContent(html, { waitUntil: "networkidle0" });
-
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
-      margin: {
-        top: "10mm",
-        bottom: "10mm",
-        left: "10mm",
-        right: "10mm",
-      },
+      margin: { top: "10mm", bottom: "10mm", left: "10mm", right: "10mm" },
     });
-
     return Buffer.from(pdfBuffer);
   } finally {
     await browser.close();
