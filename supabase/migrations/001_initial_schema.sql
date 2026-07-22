@@ -21,7 +21,8 @@ CREATE TABLE profiles (
   bank_info           text,
   quote_validity_days int NOT NULL DEFAULT 30,
   profit_margin_pct   numeric(5,2) NOT NULL DEFAULT 0,
-  created_at          timestamptz NOT NULL DEFAULT now()
+  created_at          timestamptz NOT NULL DEFAULT now(),
+  updated_at          timestamptz NOT NULL DEFAULT now()
 );
 
 -- Assinatura (1:1 com profiles)

@@ -2,6 +2,12 @@
 -- Renomeia colunas, adiciona colunas faltantes e corrige constraints de status
 
 -- ============================================================
+-- profiles: adicionar updated_at (referenciado no PATCH /api/profile)
+-- ============================================================
+
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
+
+-- ============================================================
 -- quotes: adicionar title + corrigir constraint de status
 -- ============================================================
 
