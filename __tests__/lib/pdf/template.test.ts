@@ -306,6 +306,53 @@ describe("generatePdfHtml", () => {
     expect(html).not.toContain('<table class="comparison-table"');
   });
 
+  // ----------------------------------------------------------------
+  // Paleta de cores (task_12) — verificações obrigatórias
+  // ----------------------------------------------------------------
+
+  it("não contém a cor azul primária #2563eb no template", () => {
+    const html = generatePdfHtml(makeQuoteData(), "summary");
+    expect(html).not.toContain("#2563eb");
+  });
+
+  it("não contém a cor azul escura #1e40af no template", () => {
+    const html = generatePdfHtml(makeQuoteData(), "summary");
+    expect(html).not.toContain("#1e40af");
+  });
+
+  it("não contém o fundo azul claro #eff6ff no template", () => {
+    const html = generatePdfHtml(makeQuoteData(), "summary");
+    expect(html).not.toContain("#eff6ff");
+  });
+
+  it("não contém a borda azul clara #bfdbfe no template", () => {
+    const html = generatePdfHtml(makeQuoteData(), "summary");
+    expect(html).not.toContain("#bfdbfe");
+  });
+
+  it("contém a cor terracota #C2703A como cor primária", () => {
+    const html = generatePdfHtml(makeQuoteData(), "summary");
+    expect(html).toContain("#C2703A");
+  });
+
+  it("contém a cor petróleo #2D5D5A como cor de apoio", () => {
+    const html = generatePdfHtml(makeQuoteData(), "summary");
+    expect(html).toContain("#2D5D5A");
+  });
+
+  it("mantém font-family Arial no CSS do template", () => {
+    const html = generatePdfHtml(makeQuoteData(), "summary");
+    expect(html).toContain("font-family: Arial, Helvetica, sans-serif");
+  });
+
+  it("modo detalhado também não contém cores azuis", () => {
+    const html = generatePdfHtml(makeQuoteData(), "detailed");
+    expect(html).not.toContain("#2563eb");
+    expect(html).not.toContain("#1e40af");
+    expect(html).not.toContain("#eff6ff");
+    expect(html).not.toContain("#bfdbfe");
+  });
+
   it("tabela comparativa com 2 versões mostra totais lado a lado", () => {
     const data = makeQuoteData({
       versions: [

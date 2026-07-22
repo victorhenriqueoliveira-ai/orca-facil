@@ -91,7 +91,7 @@ const STYLES = `
     justify-content: space-between;
     margin-bottom: 28px;
     padding-bottom: 20px;
-    border-bottom: 2px solid #2563eb;
+    border-bottom: 2px solid #C2703A;
   }
   .header-logo img {
     max-height: 72px;
@@ -107,7 +107,7 @@ const STYLES = `
     align-items: center;
     justify-content: center;
     font-size: 11px;
-    color: #2563eb;
+    color: #C2703A;
     text-align: center;
     padding: 8px;
   }
@@ -117,7 +117,7 @@ const STYLES = `
   .header-info .business-name {
     font-size: 18px;
     font-weight: bold;
-    color: #1e40af;
+    color: #2D5D5A;
     margin-bottom: 4px;
   }
   .header-info .meta {
@@ -127,7 +127,7 @@ const STYLES = `
   }
   .quote-badge {
     display: inline-block;
-    background: #2563eb;
+    background: #C2703A;
     color: #ffffff;
     font-size: 12px;
     font-weight: bold;
@@ -184,7 +184,7 @@ const STYLES = `
   .room-header .room-total {
     font-weight: bold;
     font-size: 13px;
-    color: #2563eb;
+    color: #C2703A;
   }
   .items-table {
     width: 100%;
@@ -216,8 +216,8 @@ const STYLES = `
     border-bottom: none;
   }
   .totals-box {
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
+    background: #FAF7F2;
+    border: 1px solid #E5DDD3;
     border-radius: 6px;
     padding: 16px 20px;
     margin-top: 8px;
@@ -231,12 +231,12 @@ const STYLES = `
     color: #374151;
   }
   .totals-row.grand {
-    border-top: 1px solid #bfdbfe;
+    border-top: 1px solid #E5DDD3;
     margin-top: 8px;
     padding-top: 10px;
     font-size: 16px;
     font-weight: bold;
-    color: #1e40af;
+    color: #2D5D5A;
   }
   .version-separator {
     border: none;
@@ -246,10 +246,10 @@ const STYLES = `
   .version-title {
     font-size: 14px;
     font-weight: bold;
-    color: #1e40af;
+    color: #2D5D5A;
     margin-bottom: 16px;
     padding: 6px 12px;
-    background: #eff6ff;
+    background: #FAF7F2;
     border-radius: 4px;
     display: inline-block;
   }
@@ -301,7 +301,7 @@ const STYLES = `
     margin-bottom: 8px;
   }
   .comparison-table th {
-    background: #1e40af;
+    background: #2D5D5A;
     color: #ffffff;
     font-size: 12px;
     font-weight: bold;
@@ -327,9 +327,9 @@ const STYLES = `
   }
   .comparison-table tr.total-row td {
     font-weight: bold;
-    color: #1e40af;
-    background: #eff6ff;
-    border-top: 2px solid #bfdbfe;
+    color: #2D5D5A;
+    background: #FAF7F2;
+    border-top: 2px solid #E5DDD3;
   }
   .comparison-table tr.total-row td.amount {
     text-align: right;
