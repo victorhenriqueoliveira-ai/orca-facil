@@ -92,6 +92,7 @@ export async function PATCH(request: NextRequest) {
     "bank_info",
     "quote_validity_days",
     "profit_margin_pct",
+    "logo_url",
   ] as const;
 
   const updates: Record<string, unknown> = {};
