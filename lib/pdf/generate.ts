@@ -3,6 +3,17 @@
  * Detecção automática de ambiente: dev vs produção.
  */
 
+function devChromePath(): string {
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    return process.env.PUPPETEER_EXECUTABLE_PATH;
+  }
+  if (process.platform === "darwin") {
+    return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+  }
+  // Linux (CI, Docker)
+  return "/usr/bin/google-chrome-stable";
+}
+
 export async function generatePdfFromHtml(html: string): Promise<Buffer> {
   // Dynamic imports to avoid issues in environments where these aren't available
   const puppeteer = await import("puppeteer-core");
@@ -11,7 +22,7 @@ export async function generatePdfFromHtml(html: string): Promise<Buffer> {
   const executablePath =
     process.env.NODE_ENV === "production"
       ? await chromium.default.executablePath()
-      : process.env.PUPPETEER_EXECUTABLE_PATH ?? "/usr/bin/google-chrome-stable";
+      : devChromePath();
 
   const browser = await puppeteer.default.launch({
     args: chromium.default.args,
