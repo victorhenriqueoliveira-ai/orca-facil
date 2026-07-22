@@ -77,7 +77,7 @@ CREATE TABLE system_template_items (
   type             text NOT NULL CHECK (type IN ('material','service')),
   unit             text NOT NULL,
   default_quantity numeric(10,3) NOT NULL DEFAULT 1,
-  sort_order       int NOT NULL DEFAULT 0
+  position         int NOT NULL DEFAULT 0
 );
 
 -- Orçamentos
@@ -86,8 +86,9 @@ CREATE TABLE quotes (
   user_id           uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   customer_id       uuid REFERENCES customers(id) ON DELETE SET NULL,
   quote_number      int NOT NULL,
+  title             text,
   status            text NOT NULL DEFAULT 'draft'
-                    CHECK (status IN ('draft','sent','approved','cancelled')),
+                    CHECK (status IN ('draft','sent','accepted','rejected','expired')),
   notes             text,
   profit_margin_pct numeric(5,2) NOT NULL DEFAULT 0,
   validity_days     int NOT NULL DEFAULT 30,
@@ -98,33 +99,36 @@ CREATE TABLE quotes (
 
 -- Versões de orçamento (variantes: Padrão, Premium, etc.)
 CREATE TABLE quote_versions (
-  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  quote_id   uuid NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
-  name       text NOT NULL DEFAULT 'Padrão',
-  sort_order int NOT NULL DEFAULT 0,
-  created_at timestamptz NOT NULL DEFAULT now()
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  quote_id          uuid NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
+  version_number    int NOT NULL DEFAULT 1,
+  name              text NOT NULL DEFAULT 'Padrão',
+  sort_order        int NOT NULL DEFAULT 0,
+  profit_margin_pct numeric(5,2),
+  notes             text,
+  created_at        timestamptz NOT NULL DEFAULT now()
 );
 
 -- Ambientes dentro de uma versão de orçamento
 CREATE TABLE quote_rooms (
-  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  quote_version_id uuid NOT NULL REFERENCES quote_versions(id) ON DELETE CASCADE,
-  name             text NOT NULL,
-  template_id      uuid REFERENCES system_templates(id) ON DELETE SET NULL,
-  sort_order       int NOT NULL DEFAULT 0
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  version_id  uuid NOT NULL REFERENCES quote_versions(id) ON DELETE CASCADE,
+  name        text NOT NULL,
+  template_id uuid REFERENCES system_templates(id) ON DELETE SET NULL,
+  position    int NOT NULL DEFAULT 0
 );
 
 -- Itens dentro de um ambiente (snapshot de preço — ADR-003)
 CREATE TABLE quote_items (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  quote_room_id   uuid NOT NULL REFERENCES quote_rooms(id) ON DELETE CASCADE,
+  room_id         uuid NOT NULL REFERENCES quote_rooms(id) ON DELETE CASCADE,
   catalog_item_id uuid,  -- referência opcional sem FK constraint (item pode ter sido inativado)
   name            text NOT NULL,
   type            text NOT NULL CHECK (type IN ('material','service')),
   unit            text NOT NULL,
   unit_price      numeric(10,2) NOT NULL CHECK (unit_price >= 0),
   quantity        numeric(10,3) NOT NULL CHECK (quantity > 0),
-  sort_order      int NOT NULL DEFAULT 0
+  position        int NOT NULL DEFAULT 0
 );
 
 -- Histórico de PDFs gerados
@@ -145,8 +149,8 @@ CREATE INDEX ON quotes(user_id, status);
 CREATE INDEX ON customers(user_id);
 CREATE INDEX ON catalog_items(user_id, is_active);
 CREATE INDEX ON quote_versions(quote_id);
-CREATE INDEX ON quote_rooms(quote_version_id);
-CREATE INDEX ON quote_items(quote_room_id);
+CREATE INDEX ON quote_rooms(version_id);
+CREATE INDEX ON quote_items(room_id);
 CREATE INDEX ON quote_pdfs(quote_id);
 
 -- ============================================================
@@ -206,7 +210,7 @@ CREATE POLICY "own_rooms" ON quote_rooms
     EXISTS (
       SELECT 1 FROM quote_versions qv
       JOIN quotes q ON q.id = qv.quote_id
-      WHERE qv.id = quote_version_id
+      WHERE qv.id = version_id
         AND q.user_id = auth.uid()
     )
   );
@@ -217,9 +221,9 @@ CREATE POLICY "own_items" ON quote_items
   USING (
     EXISTS (
       SELECT 1 FROM quote_rooms qr
-      JOIN quote_versions qv ON qv.id = qr.quote_version_id
+      JOIN quote_versions qv ON qv.id = qr.version_id
       JOIN quotes q ON q.id = qv.quote_id
-      WHERE qr.id = quote_room_id
+      WHERE qr.id = room_id
         AND q.user_id = auth.uid()
     )
   );
