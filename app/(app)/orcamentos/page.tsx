@@ -122,10 +122,10 @@ export default function OrcamentosPage() {
     <div className="max-w-lg mx-auto px-4 py-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold text-gray-900">Orçamentos</h1>
+        <h1 className="text-xl font-bold text-text-base">Orçamentos</h1>
         <Link
           href="/orcamentos/novo"
-          className="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors"
+          className="bg-brand-primary text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-brand-primary/90 transition-colors"
         >
           + Novo
         </Link>
@@ -139,8 +139,8 @@ export default function OrcamentosPage() {
             onClick={() => handleStatusFilterChange(f.value)}
             className={`flex-shrink-0 text-sm font-medium px-3 py-1.5 rounded-full border transition-colors ${
               statusFilter === f.value
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
+                ? "bg-brand-primary text-white border-brand-primary"
+                : "bg-bg-base text-text-base/70 border-border hover:border-brand-primary/50"
             }`}
           >
             {f.label}
@@ -162,10 +162,10 @@ export default function OrcamentosPage() {
 
       {/* Quote list */}
       {isLoading ? (
-        <p className="text-sm text-gray-500 text-center py-12">Carregando orçamentos...</p>
+        <p className="text-sm text-text-base/50 text-center py-12">Carregando orçamentos...</p>
       ) : quotes.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">
+          <p className="text-text-base/50 mb-4">
             {statusFilter
               ? "Nenhum orçamento encontrado com este status."
               : "Você ainda não tem orçamentos."}
@@ -173,7 +173,7 @@ export default function OrcamentosPage() {
           {!statusFilter && (
             <Link
               href="/orcamentos/novo"
-              className="inline-block bg-blue-600 text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-blue-700 transition-colors"
+              className="inline-block bg-brand-primary text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-brand-primary/90 transition-colors"
             >
               Criar primeiro orçamento
             </Link>
@@ -181,7 +181,7 @@ export default function OrcamentosPage() {
         </div>
       ) : (
         <>
-          <p className="text-xs text-gray-400 mb-3">{total} orçamento{total !== 1 ? "s" : ""}</p>
+          <p className="text-xs text-text-base/40 mb-3">{total} orçamento{total !== 1 ? "s" : ""}</p>
           <ul className="flex flex-col gap-3">
             {quotes.map((quote) => (
               <li key={quote.id}>
@@ -202,17 +202,17 @@ export default function OrcamentosPage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="text-sm text-gray-600 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1.5 border border-gray-300 rounded-lg"
+                className="text-sm text-text-base/60 hover:text-text-base disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1.5 border border-border rounded-lg"
               >
                 Anterior
               </button>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-text-base/50">
                 {page} / {totalPages}
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="text-sm text-gray-600 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1.5 border border-gray-300 rounded-lg"
+                className="text-sm text-text-base/60 hover:text-text-base disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1.5 border border-border rounded-lg"
               >
                 Próxima
               </button>

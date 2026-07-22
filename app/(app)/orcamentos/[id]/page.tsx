@@ -47,7 +47,7 @@ const STATUS_LABEL: Record<QuoteStatus, string> = {
 
 const STATUS_COLOR: Record<QuoteStatus, string> = {
   draft: "bg-gray-100 text-gray-600",
-  sent: "bg-blue-100 text-blue-700",
+  sent: "bg-brand-support/10 text-brand-support",
   accepted: "bg-green-100 text-green-700",
   rejected: "bg-red-100 text-red-700",
   expired: "bg-yellow-100 text-yellow-700",
@@ -153,7 +153,7 @@ export default function QuoteDetailPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -162,7 +162,7 @@ export default function QuoteDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4 px-4">
         <p className="text-red-600 text-sm">{error ?? "Orçamento não encontrado"}</p>
-        <Link href="/orcamentos" className="text-blue-600 text-sm underline">
+        <Link href="/orcamentos" className="text-brand-primary text-sm underline">
           Voltar para orçamentos
         </Link>
       </div>
@@ -181,19 +181,19 @@ export default function QuoteDetailPage() {
   const availableStatuses = nextStatuses[quote.status] ?? [];
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-bg-base pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
-        <Link href="/orcamentos" className="text-gray-500 hover:text-gray-700">
+      <div className="bg-bg-base border-b border-border px-4 py-3 flex items-center gap-3">
+        <Link href="/orcamentos" className="text-text-base/50 hover:text-text-base">
           ←
         </Link>
         <div className="flex-1 min-w-0">
-          <h1 className="text-base font-semibold text-gray-900 truncate">
+          <h1 className="text-base font-semibold text-text-base truncate">
             Orçamento #{quote.quote_number}
             {quote.title ? ` — ${quote.title}` : ""}
           </h1>
           {quote.customer && (
-            <p className="text-xs text-gray-500 truncate">{quote.customer.name}</p>
+            <p className="text-xs text-text-base/50 truncate">{quote.customer.name}</p>
           )}
         </div>
         <span className={`text-xs font-medium px-2 py-1 rounded-full ${STATUS_COLOR[quote.status]}`}>
@@ -207,7 +207,7 @@ export default function QuoteDetailPage() {
           <button
             onClick={handleGeneratePdf}
             disabled={isGeneratingPdf}
-            className="flex items-center justify-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-3 rounded-xl disabled:opacity-60"
+            className="flex items-center justify-center gap-2 bg-brand-primary text-white text-sm font-medium px-4 py-3 rounded-xl disabled:opacity-60"
           >
             {isGeneratingPdf ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -216,7 +216,7 @@ export default function QuoteDetailPage() {
           </button>
           <button
             onClick={handleDuplicate}
-            className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 text-sm font-medium px-4 py-3 rounded-xl"
+            className="flex items-center justify-center gap-2 bg-bg-base border border-border text-text-base/70 text-sm font-medium px-4 py-3 rounded-xl"
           >
             📋 Duplicar
           </button>
@@ -248,15 +248,15 @@ export default function QuoteDetailPage() {
 
         {/* Alterar status */}
         {availableStatuses.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-2">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Atualizar status</p>
+          <div className="bg-bg-base rounded-xl border border-border p-4 space-y-2">
+            <p className="text-xs font-medium text-text-base/50 uppercase tracking-wide">Atualizar status</p>
             <div className="flex flex-wrap gap-2">
               {availableStatuses.map((s) => (
                 <button
                   key={s}
                   onClick={() => handleStatusChange(s)}
                   disabled={isChangingStatus}
-                  className="text-xs px-3 py-1.5 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className="text-xs px-3 py-1.5 rounded-full border border-border text-text-base/70 hover:bg-border/30 disabled:opacity-50"
                 >
                   {STATUS_LABEL[s]}
                 </button>
@@ -266,7 +266,7 @@ export default function QuoteDetailPage() {
         )}
 
         {statusMsg && (
-          <p className="text-sm text-center text-gray-600">{statusMsg}</p>
+          <p className="text-sm text-center text-text-base/60">{statusMsg}</p>
         )}
 
         {/* Abas de versões */}
@@ -278,8 +278,8 @@ export default function QuoteDetailPage() {
                 onClick={() => setActiveVersionIdx(idx)}
                 className={`flex-shrink-0 text-sm px-4 py-2 rounded-full border transition-colors ${
                   idx === activeVersionIdx
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-gray-600 border-gray-300"
+                    ? "bg-brand-primary text-white border-brand-primary"
+                    : "bg-bg-base text-text-base/70 border-border"
                 }`}
               >
                 {v.name}
@@ -295,21 +295,21 @@ export default function QuoteDetailPage() {
               const roomTotal = room.items.reduce((s, i) => s + i.unit_price * i.quantity, 0);
               const roomWithMargin = roomTotal * (1 + activeVersion.profit_margin_pct / 100);
               return (
-                <div key={room.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                    <span className="text-sm font-semibold text-gray-800">{room.name}</span>
-                    <span className="text-sm font-medium text-blue-600">{formatBRL(roomWithMargin)}</span>
+                <div key={room.id} className="bg-bg-base rounded-xl border border-border overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                    <span className="text-sm font-semibold text-text-base">{room.name}</span>
+                    <span className="text-sm font-medium text-brand-primary">{formatBRL(roomWithMargin)}</span>
                   </div>
-                  <div className="divide-y divide-gray-50">
+                  <div className="divide-y divide-border">
                     {room.items.map((item) => (
                       <div key={item.id} className="flex items-center justify-between px-4 py-2.5">
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-700 truncate">{item.name}</p>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-sm text-text-base truncate">{item.name}</p>
+                          <p className="text-xs text-text-base/40">
                             {item.quantity} {item.unit} × {formatBRL(item.unit_price)}
                           </p>
                         </div>
-                        <span className="text-sm text-gray-600 ml-3">
+                        <span className="text-sm text-text-base/60 ml-3">
                           {formatBRL(item.unit_price * item.quantity)}
                         </span>
                       </div>
@@ -320,9 +320,9 @@ export default function QuoteDetailPage() {
             })}
 
             {/* Total */}
-            <div className="bg-blue-600 rounded-xl px-4 py-3 flex items-center justify-between">
+            <div className="bg-brand-primary rounded-xl px-4 py-3 flex items-center justify-between">
               <div>
-                <p className="text-xs text-blue-200">Total com margem ({activeVersion.profit_margin_pct}%)</p>
+                <p className="text-xs text-white/60">Total com margem ({activeVersion.profit_margin_pct}%)</p>
                 <p className="text-lg font-bold text-white">
                   {formatBRL(calcTotal(activeVersion.rooms, activeVersion.profit_margin_pct))}
                 </p>
@@ -332,9 +332,9 @@ export default function QuoteDetailPage() {
         )}
 
         {quote.notes && (
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Observações</p>
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">{quote.notes}</p>
+          <div className="bg-bg-base rounded-xl border border-border p-4">
+            <p className="text-xs font-medium text-text-base/50 uppercase tracking-wide mb-1">Observações</p>
+            <p className="text-sm text-text-base whitespace-pre-wrap">{quote.notes}</p>
           </div>
         )}
       </div>

@@ -77,7 +77,7 @@ const STEP_LABELS = ["Cliente", "Ambientes", "Resumo", "Envio"];
 
 function ProgressBar({ currentStep }: { currentStep: number }) {
   return (
-    <div className="flex items-center gap-0 px-4 py-3 border-b border-gray-200 bg-white">
+    <div className="flex items-center gap-0 px-4 py-3 border-b border-border bg-bg-base">
       {STEP_LABELS.map((label, idx) => {
         const stepNum = idx + 1;
         const isActive = stepNum === currentStep;
@@ -91,15 +91,15 @@ function ProgressBar({ currentStep }: { currentStep: number }) {
                   isDone
                     ? "bg-green-500 text-white"
                     : isActive
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 text-gray-500"
+                    ? "bg-brand-primary text-white"
+                    : "bg-border text-text-base/50"
                 }`}
               >
                 {isDone ? "✓" : stepNum}
               </div>
               <span
                 className={`text-xs mt-1 ${
-                  isActive ? "text-blue-600 font-medium" : "text-gray-400"
+                  isActive ? "text-brand-primary font-medium" : "text-text-base/40"
                 }`}
               >
                 {label}
