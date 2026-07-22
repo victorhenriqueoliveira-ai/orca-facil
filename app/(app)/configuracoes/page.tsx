@@ -253,7 +253,7 @@ export default function ConfiguracoesPage() {
               className={`inline-flex items-center gap-2 cursor-pointer px-5 py-3 rounded-xl text-sm font-medium transition-colors ${
                 uploadandoLogo
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-blue-50 text-blue-700 hover:bg-blue-100 active:bg-blue-200 border border-blue-200"
+                  : "bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 active:bg-brand-primary/30 border border-brand-primary/30"
               }`}
             >
               {uploadandoLogo
@@ -290,7 +290,7 @@ export default function ConfiguracoesPage() {
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
                 placeholder="Ex: Marcenaria do João"
-                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
               />
             </div>
 
@@ -307,7 +307,7 @@ export default function ConfiguracoesPage() {
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="Ex: São Paulo, SP"
-                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
               />
             </div>
 
@@ -324,7 +324,7 @@ export default function ConfiguracoesPage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Ex: (11) 99999-9999"
-                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
               />
             </div>
           </div>
@@ -348,7 +348,7 @@ export default function ConfiguracoesPage() {
                 value={pixKey}
                 onChange={(e) => setPixKey(e.target.value)}
                 placeholder="CPF, CNPJ, e-mail ou chave aleatória"
-                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
               />
             </div>
 
@@ -365,7 +365,7 @@ export default function ConfiguracoesPage() {
                 onChange={(e) => setBankInfo(e.target.value)}
                 placeholder="Banco, agência, conta..."
                 rows={3}
-                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full px-4 py-3 text-base border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent resize-none"
               />
             </div>
           </div>
@@ -396,7 +396,7 @@ export default function ConfiguracoesPage() {
                 step="0.01"
                 value={profitMarginPct}
                 onChange={(e) => setProfitMarginPct(e.target.value)}
-                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
               />
             </div>
 
@@ -414,7 +414,7 @@ export default function ConfiguracoesPage() {
                 step="1"
                 value={quoteValidityDays}
                 onChange={(e) => setQuoteValidityDays(e.target.value)}
-                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
               />
             </div>
           </div>
@@ -425,8 +425,8 @@ export default function ConfiguracoesPage() {
           disabled={salvando}
           className={`w-full py-4 rounded-2xl text-white text-lg font-semibold transition-colors ${
             salvando
-              ? "bg-blue-300 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800"
+              ? "bg-brand-primary/40 cursor-not-allowed"
+              : "bg-brand-primary hover:bg-brand-primary/90 active:bg-brand-primary/80"
           }`}
         >
           {salvando ? "Salvando..." : "Salvar"}
@@ -444,7 +444,7 @@ export default function ConfiguracoesPage() {
               isActive
                 ? "bg-green-100 text-green-700"
                 : subscription?.status === "trial"
-                  ? "bg-blue-100 text-blue-700"
+                  ? "bg-brand-support/10 text-brand-support"
                   : subscription?.status === "cancelled"
                     ? "bg-gray-100 text-gray-600"
                     : "bg-red-100 text-red-700"
@@ -495,7 +495,7 @@ export default function ConfiguracoesPage() {
           <div className="pt-2">
             <a
               href="/assinar"
-              className="text-sm text-blue-600 underline hover:text-blue-700"
+              className="text-sm text-brand-primary underline hover:text-brand-primary/80"
             >
               Assinar o plano Pro — R$ 49/mês
             </a>

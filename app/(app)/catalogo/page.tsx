@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import type { CatalogItem } from "@/components/catalog-item-form";
 import { CatalogItemForm } from "@/components/catalog-item-form";
+import type { Metadata } from "next";
 
 type Tab = "material" | "service";
 
@@ -86,10 +87,10 @@ export default function CatalogoPage() {
   return (
     <div className="mx-auto max-w-lg px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Catálogo</h1>
+        <h1 className="text-xl font-bold text-text-base">Catálogo</h1>
         <button
           onClick={openAdd}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90"
           aria-label="Adicionar item ao catálogo"
         >
           + Adicionar
@@ -97,13 +98,13 @@ export default function CatalogoPage() {
       </div>
 
       {/* Abas */}
-      <div className="mb-4 flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+      <div className="mb-4 flex rounded-lg border border-border bg-bg-base p-1">
         <button
           onClick={() => setActiveTab("material")}
           className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
             activeTab === "material"
-              ? "bg-white text-blue-600 shadow-sm"
-              : "text-gray-600 hover:text-gray-900"
+              ? "bg-white text-brand-primary shadow-sm"
+              : "text-text-base/60 hover:text-text-base"
           }`}
           aria-selected={activeTab === "material"}
           role="tab"
@@ -114,8 +115,8 @@ export default function CatalogoPage() {
           onClick={() => setActiveTab("service")}
           className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
             activeTab === "service"
-              ? "bg-white text-blue-600 shadow-sm"
-              : "text-gray-600 hover:text-gray-900"
+              ? "bg-white text-brand-primary shadow-sm"
+              : "text-text-base/60 hover:text-text-base"
           }`}
           aria-selected={activeTab === "service"}
           role="tab"
@@ -126,15 +127,15 @@ export default function CatalogoPage() {
 
       {/* Conteúdo */}
       {loading ? (
-        <div className="py-12 text-center text-gray-500">Carregando...</div>
+        <div className="py-12 text-center text-text-base/50">Carregando...</div>
       ) : error ? (
-        <div className="py-12 text-center text-red-500">{error}</div>
+        <div className="py-12 text-center text-error">{error}</div>
       ) : tabItems.length === 0 ? (
-        <div className="py-12 text-center text-gray-400">
+        <div className="py-12 text-center text-text-base/40">
           <p className="text-sm">Nenhum item cadastrado ainda.</p>
           <button
             onClick={openAdd}
-            className="mt-3 text-sm font-medium text-blue-600 hover:underline"
+            className="mt-3 text-sm font-medium text-brand-primary hover:underline"
           >
             Adicionar o primeiro item
           </button>
@@ -144,7 +145,7 @@ export default function CatalogoPage() {
           {/* Itens ativos */}
           {activeItems.length > 0 && (
             <section>
-              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-base/50">
                 Ativos ({activeItems.length})
               </h2>
               <ul className="space-y-2">
@@ -163,7 +164,7 @@ export default function CatalogoPage() {
           {/* Itens inativos */}
           {inactiveItems.length > 0 && (
             <section>
-              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-base/40">
                 Inativos ({inactiveItems.length})
               </h2>
               <ul className="space-y-2 opacity-60">
@@ -201,17 +202,17 @@ interface CatalogItemRowProps {
 
 function CatalogItemRow({ item, onEdit, onToggle }: CatalogItemRowProps) {
   return (
-    <li className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3">
+    <li className="flex items-center justify-between rounded-lg border border-border bg-bg-base px-4 py-3">
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-gray-900">{item.name}</p>
-        <p className="text-xs text-gray-500">
+        <p className="truncate text-sm font-medium text-text-base">{item.name}</p>
+        <p className="text-xs text-text-base/50">
           {item.unit} · {formatPrice(item.unit_price)}
         </p>
       </div>
       <div className="ml-3 flex items-center gap-2">
         <button
           onClick={() => onEdit(item)}
-          className="rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100"
+          className="rounded px-2 py-1 text-xs text-text-base/50 hover:bg-border/30"
           aria-label={`Editar ${item.name}`}
         >
           Editar
@@ -222,7 +223,7 @@ function CatalogItemRow({ item, onEdit, onToggle }: CatalogItemRowProps) {
           aria-label={item.is_active ? `Inativar ${item.name}` : `Ativar ${item.name}`}
           aria-pressed={item.is_active}
           className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-            item.is_active ? "bg-blue-600" : "bg-gray-200"
+            item.is_active ? "bg-brand-primary" : "bg-border"
           }`}
         >
           <span

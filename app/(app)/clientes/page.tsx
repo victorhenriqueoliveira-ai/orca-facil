@@ -102,10 +102,10 @@ export default function ClientesPage() {
   return (
     <div className="max-w-lg mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold text-gray-900">Clientes</h1>
+        <h1 className="text-xl font-bold text-text-base">Clientes</h1>
         <button
           onClick={() => setModalMode("create")}
-          className="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors"
+          className="bg-brand-primary text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-brand-primary/90 transition-colors"
         >
           + Novo cliente
         </button>
@@ -116,7 +116,7 @@ export default function ClientesPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Buscar por nome ou telefone..."
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+        className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 mb-4"
       />
 
       {error && (
@@ -124,9 +124,9 @@ export default function ClientesPage() {
       )}
 
       {isLoading ? (
-        <p className="text-sm text-gray-500 text-center py-8">Carregando...</p>
+        <p className="text-sm text-text-base/50 text-center py-8">Carregando...</p>
       ) : customers.length === 0 ? (
-        <p className="text-sm text-gray-500 text-center py-8">
+        <p className="text-sm text-text-base/50 text-center py-8">
           {search ? "Nenhum cliente encontrado" : "Nenhum cliente cadastrado"}
         </p>
       ) : (
@@ -134,20 +134,20 @@ export default function ClientesPage() {
           {customers.map((customer) => (
             <li
               key={customer.id}
-              className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between"
+              className="bg-bg-base border border-border rounded-lg p-4 flex items-center justify-between"
             >
               <Link href={`/clientes/${customer.id}`} className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900 truncate">{customer.name}</p>
+                <p className="font-medium text-text-base truncate">{customer.name}</p>
                 {customer.phone && (
-                  <p className="text-sm text-gray-500">{formatPhoneBR(customer.phone)}</p>
+                  <p className="text-sm text-text-base/50">{formatPhoneBR(customer.phone)}</p>
                 )}
                 {customer.email && !customer.phone && (
-                  <p className="text-sm text-gray-500">{customer.email}</p>
+                  <p className="text-sm text-text-base/50">{customer.email}</p>
                 )}
               </Link>
               <button
                 onClick={() => openEdit(customer)}
-                className="ml-3 text-sm text-blue-600 hover:text-blue-800 flex-shrink-0"
+                className="ml-3 text-sm text-brand-primary hover:text-brand-primary/80 flex-shrink-0"
               >
                 Editar
               </button>
@@ -163,14 +163,14 @@ export default function ClientesPage() {
           role="dialog"
           aria-modal="true"
         >
-          <div className="bg-white w-full sm:max-w-md sm:rounded-xl rounded-t-2xl max-h-[90vh] overflow-y-auto shadow-xl">
+          <div className="bg-bg-base w-full sm:max-w-md sm:rounded-xl rounded-t-2xl max-h-[90vh] overflow-y-auto shadow-xl">
             <div className="flex items-center justify-between px-4 pt-4">
-              <h2 className="text-base font-semibold text-gray-900">
+              <h2 className="text-base font-semibold text-text-base">
                 {modalMode === "create" ? "Novo cliente" : "Editar cliente"}
               </h2>
               <button
                 onClick={closeModal}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-text-base/50 hover:text-text-base"
                 aria-label="Fechar"
               >
                 ✕
