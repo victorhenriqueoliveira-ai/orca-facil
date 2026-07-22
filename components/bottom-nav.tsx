@@ -93,17 +93,22 @@ const ITENS_NAV = [
   },
 ];
 
+interface BottomNavProps {
+  className?: string;
+}
+
 /**
  * Navegação inferior mobile-first com 4 destinos principais.
  * Destaca o item ativo com base na rota atual.
+ * Aceita `className` para permitir ocultação responsiva (ex: `lg:hidden`).
  */
-export function BottomNav() {
+export function BottomNav({ className }: BottomNavProps) {
   const pathname = usePathname();
 
   return (
     <nav
       aria-label="Navegação principal"
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-area-pb"
+      className={`fixed bottom-0 left-0 right-0 z-50 bg-bg-base border-t border-border safe-area-pb${className ? ` ${className}` : ""}`}
     >
       <ul className="flex items-stretch justify-around h-16">
         {ITENS_NAV.map(({ href, label, icone }) => {
@@ -117,8 +122,8 @@ export function BottomNav() {
                 aria-current={ativo ? "page" : undefined}
                 className={`flex flex-col items-center justify-center gap-1 h-full text-xs font-medium transition-colors ${
                   ativo
-                    ? "text-blue-600"
-                    : "text-gray-500 hover:text-gray-800"
+                    ? "text-brand-primary"
+                    : "text-text-base/50 hover:text-text-base"
                 }`}
               >
                 {icone}
