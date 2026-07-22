@@ -2,15 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 // Rotas públicas que não exigem autenticação
-const ROTAS_PUBLICAS = ["/login", "/auth/verify", "/api/auth/callback"];
+const ROTAS_PUBLICAS = [
+  "/",
+  "/login",
+  "/cadastro",
+  "/redefinir-senha",
+  "/nova-senha",
+  "/auth/verify",
+  "/api/auth/callback",
+  "/api/auth/logout",
+];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Deixar rotas públicas passarem sem verificação
-  const ehRotaPublica = ROTAS_PUBLICAS.some(
-    (rota) => pathname === rota || pathname.startsWith(`${rota}/`)
-  );
+  const ehRotaPublica = ROTAS_PUBLICAS.some((rota) => {
+    if (rota === "/") return pathname === "/";
+    return pathname === rota || pathname.startsWith(`${rota}/`);
+  });
 
   if (ehRotaPublica) {
     return NextResponse.next();

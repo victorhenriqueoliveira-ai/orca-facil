@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Múltiplas versões de orçamento
 type: frontend
 complexity: high
@@ -35,13 +35,13 @@ Adiciona suporte a variantes (versões) de um mesmo orçamento — ex.: "Padrão
 
 ## Subtasks
 
-- [ ] 12.1 Criar Route Handler `POST /api/quotes/[id]/versions`
-- [ ] 12.2 Criar Route Handler `PATCH /api/quotes/[id]/versions/[vid]`
-- [ ] 12.3 Criar Route Handler `DELETE /api/quotes/[id]/versions/[vid]` com guard de mínimo 1 versão
-- [ ] 12.4 Adicionar abas de versões na etapa 2 do wizard com troca de contexto
-- [ ] 12.5 Implementar botão "Adicionar versão" com modal de nome
-- [ ] 12.6 Implementar seletor de versões na etapa 4 antes de gerar PDF
-- [ ] 12.7 Atualizar template HTML do PDF para suportar tabela comparativa multi-versão
+- [x] 12.1 Criar Route Handler `POST /api/quotes/[id]/versions`
+- [x] 12.2 Criar Route Handler `PATCH /api/quotes/[id]/versions/[vid]`
+- [x] 12.3 Criar Route Handler `DELETE /api/quotes/[id]/versions/[vid]` com guard de mínimo 1 versão
+- [x] 12.4 Adicionar abas de versões na etapa 2 do wizard com troca de contexto
+- [x] 12.5 Implementar botão "Adicionar versão" com modal de nome
+- [x] 12.6 Implementar seletor de versões na etapa 4 antes de gerar PDF
+- [x] 12.7 Atualizar template HTML do PDF para suportar tabela comparativa multi-versão
 
 ## Implementation Details
 
@@ -86,14 +86,14 @@ Tabela comparativa no PDF (multi-versão):
 ## Tests
 
 - Testes unitários:
-  - [ ] `DELETE /api/quotes/[id]/versions/[vid]` com única versão existente retorna 409
-  - [ ] `POST /api/quotes/[id]/versions` com orçamento de outro usuário retorna 403
-  - [ ] Template HTML com 2 `version_ids` inclui tabela comparativa com 2 colunas
-  - [ ] Template HTML com 1 `version_id` não inclui tabela comparativa
+  - [x] `DELETE /api/quotes/[id]/versions/[vid]` com única versão existente retorna 409
+  - [x] `POST /api/quotes/[id]/versions` com orçamento de outro usuário retorna 403
+  - [x] Template HTML com 2 `version_ids` inclui tabela comparativa com 2 colunas
+  - [x] Template HTML com 1 `version_id` não inclui tabela comparativa
 - Testes de integração:
-  - [ ] Criar versão "Premium", adicionar ambiente diferente, gerar PDF com ambas → PDF contém tabela comparativa correta
-  - [ ] Renomear versão via PATCH → nome reflete nas abas do wizard
-  - [ ] Deletar versão "Premium" com versão "Padrão" ainda ativa → versão removida, orçamento intacto
+  - [x] Criar versão "Premium", adicionar ambiente diferente, gerar PDF com ambas → PDF contém tabela comparativa correta
+  - [x] Renomear versão via PATCH → nome reflete nas abas do wizard
+  - [x] Deletar versão "Premium" com versão "Padrão" ainda ativa → versão removida, orçamento intacto
 
 ## Success Criteria
 
