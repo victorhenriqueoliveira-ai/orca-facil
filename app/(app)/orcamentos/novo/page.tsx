@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { StepClient } from "@/components/wizard/step-client";
 import { StepRooms, type Room } from "@/components/wizard/step-rooms";
 import { StepReview } from "@/components/wizard/step-review";
+import { StepSend } from "@/components/wizard/step-send";
 
 // ----------------------------------------------------------------
 // Estado do wizard
@@ -218,13 +219,12 @@ export default function NovoOrcamentoPage() {
           />
         )}
 
-        {state.step === 4 && (
-          <div className="p-4">
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">Envio</h2>
-            <p className="text-sm text-gray-500">
-              Etapa 4 será implementada na task_10.
-            </p>
-          </div>
+        {state.step === 4 && state.quoteId && state.versionId && (
+          <StepSend
+            quoteId={state.quoteId}
+            versionId={state.versionId}
+            onBack={() => dispatch({ type: "GO_TO_STEP", payload: 3 })}
+          />
         )}
       </div>
     </div>
