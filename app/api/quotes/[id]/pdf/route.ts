@@ -82,14 +82,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         quote_rooms (
           id,
           name,
-          sort_order,
+          position,
           quote_items (
             id,
             name,
             unit,
             unit_price,
             quantity,
-            sort_order
+            position
           )
         )
       )
@@ -150,14 +150,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     quote_rooms: Array<{
       id: string;
       name: string;
-      sort_order: number;
+      position: number;
       quote_items: Array<{
         id: string;
         name: string;
         unit: string;
         unit_price: number;
         quantity: number;
-        sort_order: number;
+        position: number;
       }>;
     }>;
   };
@@ -178,12 +178,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     .sort((a: RawVersion, b: RawVersion) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
     .map((v: RawVersion) => {
       const rooms: PdfRoom[] = (v.quote_rooms ?? [])
-        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+        .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
         .map((r) => ({
           id: r.id,
           name: r.name,
           items: (r.quote_items ?? [])
-            .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+            .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
             .map((i) => ({
               id: i.id,
               name: i.name,
