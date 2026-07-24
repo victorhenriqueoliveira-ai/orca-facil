@@ -73,6 +73,17 @@ export async function POST(req: NextRequest) {
           .eq("user_id", userId);
 
         if (error) throw error;
+
+        // Registra o pagamento no histórico
+        await supabase.from("subscription_payments").insert({
+          user_id: userId,
+          abacatepay_billing_id: subscriptionId,
+          amount: (data as unknown as { amount?: number }).amount ?? 4990,
+          paid_at: new Date().toISOString(),
+          period_end: periodEnd.toISOString(),
+          receipt_url: (data as unknown as { receiptUrl?: string }).receiptUrl ?? null,
+        });
+
         result = `checkout.completed → status=active, period_end=${periodEnd.toISOString()}`;
         break;
       }

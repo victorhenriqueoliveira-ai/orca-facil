@@ -1,8 +1,23 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useSubscription } from "@/components/subscription-provider";
+
+interface Pagamento {
+  id: string;
+  amount: number;
+  paid_at: string;
+  period_end: string | null;
+  receipt_url: string | null;
+}
+
+interface AssinaturaDetalhes {
+  currentPeriodEnd: string | null;
+  daysUntilRenewal: number | null;
+  payments: Pagamento[];
+}
 
 interface Perfil {
   id: string;
@@ -30,6 +45,7 @@ export default function ConfiguracoesPage() {
   const [cancelando, setCancelando] = useState(false);
   const [cancelado, setCancelado] = useState(false);
   const [erroCancelamento, setErroCancelamento] = useState<string | null>(null);
+  const [assinatura, setAssinatura] = useState<AssinaturaDetalhes | null>(null);
 
   const [businessName, setBusinessName] = useState("");
   const [city, setCity] = useState("");
@@ -41,9 +57,25 @@ export default function ConfiguracoesPage() {
 
   const inputFileRef = useRef<HTMLInputElement>(null);
 
+  const buscarAssinatura = useCallback(async () => {
+    try {
+      const res = await fetch("/api/subscription");
+      if (!res.ok) return;
+      const data = await res.json();
+      setAssinatura({
+        currentPeriodEnd: data.currentPeriodEnd,
+        daysUntilRenewal: data.daysUntilRenewal,
+        payments: data.payments ?? [],
+      });
+    } catch {
+      // silencioso
+    }
+  }, []);
+
   useEffect(() => {
     buscarPerfil();
-  }, []);
+    buscarAssinatura();
+  }, [buscarAssinatura]);
 
   async function buscarPerfil() {
     setCarregando(true);
@@ -437,42 +469,118 @@ export default function ConfiguracoesPage() {
       <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
         <h2 className="text-lg font-semibold text-gray-800">Assinatura</h2>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">Status:</span>
-          <span
-            className={`text-sm font-medium px-2 py-0.5 rounded-full ${
-              isActive
-                ? "bg-green-100 text-green-700"
+        {/* Status + dias restantes */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">Status:</span>
+            <span
+              className={`text-sm font-medium px-2.5 py-0.5 rounded-full ${
+                isActive
+                  ? "bg-green-100 text-green-700"
+                  : subscription?.status === "trial"
+                    ? "bg-amber-100 text-amber-700"
+                    : subscription?.status === "cancelled"
+                      ? "bg-gray-100 text-gray-600"
+                      : "bg-red-100 text-red-700"
+              }`}
+            >
+              {isActive
+                ? "Ativo"
                 : subscription?.status === "trial"
-                  ? "bg-brand-support/10 text-brand-support"
+                  ? "Trial"
                   : subscription?.status === "cancelled"
-                    ? "bg-gray-100 text-gray-600"
-                    : "bg-red-100 text-red-700"
-            }`}
-          >
-            {isActive
-              ? "Ativo"
-              : subscription?.status === "trial"
-                ? "Trial"
-                : subscription?.status === "cancelled"
-                  ? "Cancelado"
-                  : "Somente leitura"}
-          </span>
+                    ? "Cancelado"
+                    : "Somente leitura"}
+            </span>
+          </div>
+          {isActive && assinatura?.daysUntilRenewal !== null && assinatura?.daysUntilRenewal !== undefined && (
+            <span className="text-sm text-gray-500">
+              Renova em <span className="font-semibold text-gray-800">{assinatura.daysUntilRenewal} dias</span>
+            </span>
+          )}
         </div>
 
+        {/* Próximo vencimento */}
+        {isActive && assinatura?.currentPeriodEnd && (
+          <div className="bg-gray-50 rounded-xl px-4 py-3 flex items-center justify-between">
+            <span className="text-sm text-gray-600">Próximo vencimento</span>
+            <span className="text-sm font-semibold text-gray-800">
+              {new Date(assinatura.currentPeriodEnd).toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              })}
+            </span>
+          </div>
+        )}
+
+        {/* Trial — link para assinar */}
+        {subscription?.status === "trial" && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+            <p className="text-sm text-amber-800 mb-2">
+              {subscription.daysLeft !== null
+                ? `Seu trial termina em ${subscription.daysLeft} dia${subscription.daysLeft !== 1 ? "s" : ""}.`
+                : "Seu trial está ativo."}
+            </p>
+            <Link
+              href="/assinar"
+              className="text-sm font-medium text-amber-700 underline hover:text-amber-900"
+            >
+              Assinar o plano Pro — R$ 49,90/mês →
+            </Link>
+          </div>
+        )}
+
+        {/* Histórico de pagamentos */}
+        {assinatura && assinatura.payments.length > 0 && (
+          <div className="pt-2 border-t border-gray-100 space-y-2">
+            <h3 className="text-sm font-semibold text-gray-700">Histórico de pagamentos</h3>
+            <ul className="space-y-2">
+              {assinatura.payments.map((p) => (
+                <li key={p.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      {new Date(p.paid_at).toLocaleDateString("pt-BR", {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+                    {p.period_end && (
+                      <p className="text-xs text-gray-500">
+                        Acesso até {new Date(p.period_end).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold text-gray-800">
+                      {(p.amount / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </span>
+                    {p.receipt_url && (
+                      <a
+                        href={p.receipt_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-brand-primary border border-brand-primary/30 rounded-lg px-2 py-1 hover:bg-brand-primary/10 transition-colors"
+                      >
+                        Recibo
+                      </a>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Cancelar assinatura */}
         {isActive && !cancelado && (
           <div className="pt-2 border-t border-gray-100 space-y-3">
-            <p className="text-sm text-gray-500">
-              Você pode cancelar sua assinatura a qualquer momento. O acesso
-              completo continua até o final do período pago.
-            </p>
-
             {erroCancelamento && (
               <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
                 {erroCancelamento}
               </div>
             )}
-
             <button
               type="button"
               onClick={handleCancelarAssinatura}
@@ -486,19 +594,7 @@ export default function ConfiguracoesPage() {
 
         {cancelado && (
           <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-700">
-            Assinatura cancelada com sucesso. Seu acesso completo permanece até
-            o fim do período atual.
-          </div>
-        )}
-
-        {!isActive && subscription?.status === "trial" && (
-          <div className="pt-2">
-            <a
-              href="/assinar"
-              className="text-sm text-brand-primary underline hover:text-brand-primary/80"
-            >
-              Assinar o plano Pro — R$ 49/mês
-            </a>
+            Assinatura cancelada. Seu acesso completo permanece até o fim do período atual.
           </div>
         )}
       </section>
