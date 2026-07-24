@@ -5,16 +5,11 @@ export interface TrialReminderData {
   sign_up_url: string;
 }
 
-/**
- * Gera o HTML do e-mail de reengajamento de trial.
- * Inclui nome da marcenaria, contagem de orçamentos, dias restantes e link para assinar.
- */
 export function buildTrialReminderHtml(data: TrialReminderData): string {
   const name = data.business_name ?? "Marceneiro";
   const { quote_count, days_left, sign_up_url } = data;
 
-  const daysText =
-    days_left === 1 ? "1 dia" : `${days_left} dias`;
+  const daysText = days_left === 1 ? "1 dia" : `${days_left} dias`;
   const quotesText =
     quote_count === 0
       ? "Você ainda não criou orçamentos durante o trial"
@@ -29,64 +24,85 @@ export function buildTrialReminderHtml(data: TrialReminderData): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Seu trial expira em breve — Orça Fácil</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f9fafb;font-family:Arial,Helvetica,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;padding:40px 16px;">
+<body style="margin:0;padding:0;background-color:#FAF7F2;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#FAF7F2;padding:40px 16px;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+        <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #E5DDD3;">
+
           <!-- Header -->
           <tr>
-            <td style="background-color:#1e40af;padding:32px 40px;text-align:center;">
-              <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;">Orça Fácil</h1>
+            <td style="background-color:#2D5D5A;padding:28px 40px;text-align:center;">
+              <img src="https://orcafacil.com.br/orca_facil.png" alt="Orça Fácil" width="160" style="display:inline-block;height:auto;filter:brightness(0) invert(1);" />
+            </td>
+          </tr>
+
+          <!-- Alert strip -->
+          <tr>
+            <td style="background-color:#C2703A;padding:10px 40px;text-align:center;">
+              <p style="margin:0;color:#ffffff;font-size:13px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">
+                Seu trial expira em ${daysText}
+              </p>
             </td>
           </tr>
 
           <!-- Body -->
           <tr>
-            <td style="padding:40px;">
-              <p style="margin:0 0 16px;color:#111827;font-size:16px;">Olá, <strong>${name}</strong>!</p>
+            <td style="padding:40px 40px 32px;">
+              <p style="margin:0 0 20px;color:#2B2621;font-size:17px;font-weight:600;">
+                Olá, ${name}!
+              </p>
 
-              <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.6;">
-                Seu período de trial expira em <strong style="color:#dc2626;">${daysText}</strong>.
+              <p style="margin:0 0 20px;color:#4A3F38;font-size:15px;line-height:1.7;">
+                Seu período de teste gratuito do Orça Fácil expira em
+                <strong style="color:#C2703A;">${daysText}</strong>.
                 Após esse prazo, sua conta entrará em modo somente-leitura e você não poderá criar novos orçamentos.
               </p>
 
-              <div style="background-color:#f0f9ff;border-left:4px solid #1e40af;padding:16px 20px;margin:24px 0;border-radius:0 4px 4px 0;">
-                <p style="margin:0;color:#1e40af;font-size:15px;font-weight:600;">
-                  ${quotesText}.
-                </p>
-              </div>
+              <!-- Stats card -->
+              <table cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border:1px solid #E5DDD3;border-radius:10px;overflow:hidden;margin:28px 0;">
+                <tr>
+                  <td style="background-color:#FAF7F2;padding:20px 24px;">
+                    <p style="margin:0 0 4px;color:#2D5D5A;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;">Seu progresso</p>
+                    <p style="margin:0;color:#2B2621;font-size:15px;font-weight:500;">${quotesText}.</p>
+                  </td>
+                </tr>
+              </table>
 
-              <p style="margin:0 0 24px;color:#374151;font-size:15px;line-height:1.6;">
-                Assine agora para continuar utilizando todos os recursos do Orça Fácil e nunca perder um orçamento.
+              <p style="margin:0 0 32px;color:#4A3F38;font-size:15px;line-height:1.7;">
+                Assine por apenas <strong style="color:#2B2621;">R$&nbsp;49/mês</strong> para continuar criando orçamentos profissionais e nunca perder um cliente.
               </p>
 
               <!-- CTA Button -->
-              <table cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">
+              <table cellpadding="0" cellspacing="0" role="presentation" style="margin:0 auto 32px;">
                 <tr>
-                  <td align="center" style="background-color:#1e40af;border-radius:6px;">
+                  <td align="center" style="background-color:#C2703A;border-radius:10px;">
                     <a href="${sign_up_url}"
-                       style="display:inline-block;padding:14px 32px;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:6px;">
-                      Assinar agora
+                       style="display:inline-block;padding:15px 36px;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:-0.2px;">
+                      Assinar agora — R$&nbsp;49/mês
                     </a>
                   </td>
                 </tr>
               </table>
 
-              <p style="margin:0;color:#6b7280;font-size:13px;text-align:center;">
-                Se tiver dúvidas, responda este e-mail — estamos aqui para ajudar.
+              <p style="margin:0;color:#9B8E87;font-size:13px;text-align:center;line-height:1.6;">
+                Tem dúvidas? Responda este e-mail — estamos aqui para ajudar.
               </p>
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="background-color:#f3f4f6;padding:20px 40px;text-align:center;">
-              <p style="margin:0;color:#9ca3af;font-size:12px;">
+            <td style="background-color:#FAF7F2;border-top:1px solid #E5DDD3;padding:20px 40px;text-align:center;">
+              <p style="margin:0 0 4px;color:#9B8E87;font-size:12px;">
                 © Orça Fácil · Você está recebendo este e-mail porque seu trial está prestes a expirar.
+              </p>
+              <p style="margin:0;color:#C0B8B3;font-size:11px;">
+                Orça Fácil — Software para marceneiros profissionais
               </p>
             </td>
           </tr>
+
         </table>
       </td>
     </tr>

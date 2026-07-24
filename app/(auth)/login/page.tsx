@@ -39,14 +39,19 @@ export default function PaginaLogin() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg-base p-4">
+    <div className="min-h-screen flex items-center justify-center bg-bg-base">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-text-base">Orça Fácil</h1>
-          <p className="mt-2 text-text-base/70">Entre na sua conta</p>
+        <div className="text-center">
+          <div className="flex items-center justify-center sm:gap-3">
+            <img
+              src="/orca_facil.png"
+              alt="Orça Fácil"
+              className="h-[200px] w-auto sm:h-[200px]"
+            />
+          </div>
         </div>
-
         <div className="bg-white rounded-2xl shadow-sm border border-border p-6">
+          <p className="mt-2 text-text-base/70 font-bold text-center mb-6">Entre na sua conta</p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               id="email"
@@ -84,7 +89,7 @@ export default function PaginaLogin() {
               variant="primary"
               size="lg"
               disabled={carregando || !email.trim() || !senha}
-              className="w-full"
+              className="w-full cursor-pointer"
             >
               {carregando ? "Entrando..." : "Entrar"}
             </Button>
@@ -106,6 +111,14 @@ export default function PaginaLogin() {
                 Cadastre-se
               </a>
             </p>
+          </div>
+          <div className="mt-4 text-center space-y-2">
+            <a
+              href="/"
+              className="block text-sm text-primary underline"
+            >
+              Voltar para a página inicial
+            </a>
           </div>
         </div>
       </div>

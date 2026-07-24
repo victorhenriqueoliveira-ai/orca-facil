@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redefinir senha — Orça Fácil</title>
+</head>
+<body style="margin:0;padding:0;background-color:#FAF7F2;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#FAF7F2;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #E5DDD3;">
+
+          <!-- Header -->
+          <tr>
+            <td style="background-color:#2D5D5A;padding:28px 40px;text-align:center;">
+              <img src="https://orcafacil.com.br/orca_facil.png" alt="Orça Fácil" width="160" style="display:inline-block;height:auto;filter:brightness(0) invert(1);" />
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px 40px 32px;">
+
+              <!-- Icon -->
+              <table cellpadding="0" cellspacing="0" role="presentation" style="margin:0 auto 28px;">
+                <tr>
+                  <td style="background-color:#FAF7F2;border:1px solid #E5DDD3;border-radius:50%;width:64px;height:64px;text-align:center;vertical-align:middle;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#2D5D5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-top:17px;">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                  </td>
+                </tr>
+              </table>
+
+              <h1 style="margin:0 0 12px;color:#2B2621;font-size:22px;font-weight:700;text-align:center;letter-spacing:-0.3px;">
+                Redefinir sua senha
+              </h1>
+
+              <p style="margin:0 0 28px;color:#4A3F38;font-size:15px;line-height:1.7;text-align:center;">
+                Recebemos uma solicitação para redefinir a senha da sua conta no Orça Fácil.
+                Clique no botão abaixo para criar uma nova senha.
+              </p>
+
+              <!-- CTA Button -->
+              <table cellpadding="0" cellspacing="0" role="presentation" style="margin:0 auto 28px;">
+                <tr>
+                  <td align="center" style="background-color:#C2703A;border-radius:10px;">
+                    <a href="{{ .ConfirmationURL }}"
+                       style="display:inline-block;padding:15px 36px;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:-0.2px;">
+                      Criar nova senha
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Security note -->
+              <table cellpadding="0" cellspacing="0" role="presentation" style="width:100%;border:1px solid #E5DDD3;border-radius:10px;overflow:hidden;margin:0 0 24px;">
+                <tr>
+                  <td style="background-color:#FAF7F2;padding:16px 20px;">
+                    <p style="margin:0 0 4px;color:#2D5D5A;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;">Segurança</p>
+                    <p style="margin:0;color:#4A3F38;font-size:13px;line-height:1.6;">
+                      Este link é válido por <strong>1 hora</strong>. Se você não solicitou a redefinição de senha, ignore este e-mail — sua senha permanecerá a mesma.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0;color:#9B8E87;font-size:12px;text-align:center;line-height:1.6;">
+                Se o botão não funcionar, copie e cole este link no navegador:<br/>
+                <a href="{{ .ConfirmationURL }}" style="color:#C2703A;word-break:break-all;">{{ .ConfirmationURL }}</a>
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#FAF7F2;border-top:1px solid #E5DDD3;padding:20px 40px;text-align:center;">
+              <p style="margin:0 0 4px;color:#9B8E87;font-size:12px;">
+                © Orça Fácil · Você recebeu este e-mail porque solicitou a redefinição de senha.
+              </p>
+              <p style="margin:0;color:#C0B8B3;font-size:11px;">
+                Orça Fácil — Software para marceneiros profissionais
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

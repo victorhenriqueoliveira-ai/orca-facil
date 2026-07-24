@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useSubscription } from "@/components/subscription-provider";
 
 const ITENS_NAV = [
   {
@@ -93,7 +94,6 @@ const ITENS_NAV = [
   },
 ];
 
-/** Ícone de logout */
 const IconeLogout = (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -116,29 +116,32 @@ interface SidebarProps {
   className?: string;
 }
 
-/**
- * Sidebar de navegação lateral para desktop (≥ 1024px).
- * Em mobile deve ser oculta via className="hidden lg:flex".
- * Exibe logo tipográfico, 4 itens de nav e link de logout no rodapé.
- */
 export function Sidebar({ className = "" }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const subscription = useSubscription();
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
   }
 
+  const trialDaysLeft =
+    subscription.status === "trial" && subscription.daysLeft !== null
+      ? subscription.daysLeft
+      : null;
+
   return (
     <aside
       className={`flex-col w-64 min-h-screen bg-white border-r border-border ${className}`}
     >
       {/* Logo */}
-      <div className="px-6 py-6 border-b border-border">
-        <span className="text-xl font-bold text-brand-support font-sans tracking-tight">
-          Orça Fácil
-        </span>
+      <div className="px-6 py-5 border-b border-border">
+        <img
+          src="/orca_facil.png"
+          alt="Orça Fácil"
+          className="h-20 w-auto"
+        />
       </div>
 
       {/* Navegação principal */}
@@ -167,11 +170,30 @@ export function Sidebar({ className = "" }: SidebarProps) {
         </ul>
       </nav>
 
+      {/* Trial badge */}
+      {trialDaysLeft !== null && (
+        <div className="px-3 pb-3">
+          <Link
+            href="/assinar"
+            className="block w-full rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-center hover:bg-amber-100 transition-colors"
+          >
+            <p className="text-xs font-semibold text-amber-700 leading-tight">
+              {trialDaysLeft === 0
+                ? "Trial termina hoje"
+                : trialDaysLeft === 1
+                  ? "1 dia restante no trial"
+                  : `${trialDaysLeft} dias restantes`}
+            </p>
+            <p className="text-xs text-amber-600 mt-0.5">Clique para assinar</p>
+          </Link>
+        </div>
+      )}
+
       {/* Rodapé — logout */}
       <div className="px-3 py-4 border-t border-border">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-text-base hover:bg-bg-base transition-colors"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-text-base hover:bg-bg-base transition-colors cursor-pointer"
           aria-label="Sair da conta"
         >
           {IconeLogout}

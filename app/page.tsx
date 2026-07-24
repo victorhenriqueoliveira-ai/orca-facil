@@ -52,8 +52,8 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-border bg-bg-base/95 backdrop-blur-sm">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
-            <Link href="/" className="text-xl font-bold text-brand-support">
-              Orça Fácil
+            <Link href="/">
+              <img src="/orca_facil.png" alt="Orça Fácil" className="h-[120px] sm:h-[160px] w-auto" />
             </Link>
             <nav className="flex items-center gap-3">
               <Link
@@ -80,7 +80,7 @@ export default function LandingPage() {
               Crie orçamentos de móveis planejados em minutos, direto do celular
             </h1>
             <p className="mt-6 text-lg sm:text-xl text-text-base/70 max-w-2xl mx-auto">
-              Mais de 500 marceneiros já usam o Orça Fácil para fechar mais negócios com menos esforço. Sem planilhas, sem complicação.
+              Use Orça Fácil para fechar mais negócios com menos esforço. Sem planilhas, sem complicação.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/cadastro">

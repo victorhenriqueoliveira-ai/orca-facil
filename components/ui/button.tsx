@@ -40,7 +40,7 @@ export function Button({
     <button
       disabled={disabled}
       className={cn(
-        'inline-flex items-center justify-center rounded-lg font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2',
+        'inline-flex items-center justify-center rounded-lg font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 cursor-pointer',
         variantClasses[variant],
         sizeClasses[size],
         disabled && 'pointer-events-none opacity-50',
