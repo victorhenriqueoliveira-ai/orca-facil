@@ -1,6 +1,6 @@
 export default function ClientesLoading() {
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 animate-pulse">
+    <div className="max-w-lg lg:max-w-4xl mx-auto px-4 py-6 animate-pulse">
       <div className="flex items-center justify-between mb-4">
         <div className="h-7 w-24 bg-border rounded" />
         <div className="h-9 w-24 bg-border rounded-lg" />

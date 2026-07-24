@@ -119,7 +119,7 @@ export default function OrcamentosPage() {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6">
+    <div className="max-w-lg lg:max-w-4xl mx-auto px-4 py-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold text-text-base">Orçamentos</h1>
@@ -132,12 +132,12 @@ export default function OrcamentosPage() {
       </div>
 
       {/* Status filter chips — horizontal scroll on mobile */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none">
+      <div className="flex flex-wrap gap-2 pb-2 mb-4">
         {STATUS_FILTERS.map((f) => (
           <button
             key={f.value}
             onClick={() => handleStatusFilterChange(f.value)}
-            className={`flex-shrink-0 text-sm font-medium px-3 py-1.5 rounded-full border transition-colors ${
+            className={`text-sm font-medium px-3 py-1.5 rounded-full border transition-colors ${
               statusFilter === f.value
                 ? "bg-brand-primary text-white border-brand-primary"
                 : "bg-bg-base text-text-base/70 border-border hover:border-brand-primary/50"

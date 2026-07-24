@@ -85,7 +85,7 @@ export default function CatalogoPage() {
   const inactiveItems = tabItems.filter((i) => !i.is_active);
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-6">
+    <div className="mx-auto max-w-lg lg:max-w-4xl px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-bold text-text-base">Catálogo</h1>
         <button

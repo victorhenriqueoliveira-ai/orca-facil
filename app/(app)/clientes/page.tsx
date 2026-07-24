@@ -100,7 +100,7 @@ export default function ClientesPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6">
+    <div className="max-w-lg lg:max-w-4xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold text-text-base">Clientes</h1>
         <button
