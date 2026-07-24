@@ -31,7 +31,7 @@ export default async function UsuarioDetailPage({
     await Promise.all([
       service
         .from("profiles")
-        .select("id, business_name, city, phone, created_at, subscriptions(status, trial_ends_at, current_period_end)")
+        .select("id, business_name, city, phone, cpf_cnpj, created_at, subscriptions(status, trial_ends_at, current_period_end)")
         .eq("id", id)
         .single(),
       service.auth.admin.getUserById(id),
@@ -75,6 +75,7 @@ export default async function UsuarioDetailPage({
         <Section title="Perfil">
           <Row label="Nome" value={authUser?.user_metadata?.name} />
           <Row label="Empresa" value={profile.business_name} />
+          <Row label="CPF / CNPJ" value={profile.cpf_cnpj ?? undefined} />
           <Row label="Cidade" value={profile.city} />
           <Row label="Telefone" value={profile.phone} />
           <Row

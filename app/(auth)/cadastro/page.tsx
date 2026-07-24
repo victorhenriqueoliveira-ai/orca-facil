@@ -3,16 +3,19 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatCpfCnpj, cleanCpfCnpj, validateCpfCnpj, cpfCnpjLabel } from "@/lib/utils/cpf-cnpj";
 
 export default function PaginaCadastro() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [cpfCnpj, setCpfCnpj] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmaSenha, setConfirmaSenha] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [erroSenha, setErroSenha] = useState<string | null>(null);
   const [erroConfirmacao, setErroConfirmacao] = useState<string | null>(null);
+  const [erroCpfCnpj, setErroCpfCnpj] = useState<string | null>(null);
 
   function validarSenha(value: string): string | null {
     if (value.length > 0 && value.length < 8) {
@@ -21,11 +24,25 @@ export default function PaginaCadastro() {
     return null;
   }
 
+  function handleCpfCnpjChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const formatted = formatCpfCnpj(e.target.value);
+    setCpfCnpj(formatted);
+    setErroCpfCnpj(null);
+  }
+
+  function validarCpfCnpj(): string | null {
+    const digits = cleanCpfCnpj(cpfCnpj);
+    if (!digits) return null;
+    if (!validateCpfCnpj(digits)) {
+      return `${cpfCnpjLabel(cpfCnpj)} inválido.`;
+    }
+    return null;
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErro(null);
 
-    // Validação local antes de chamar a API
     const erroValidacaoSenha = validarSenha(senha);
     if (erroValidacaoSenha) {
       setErroSenha(erroValidacaoSenha);
@@ -37,31 +54,43 @@ export default function PaginaCadastro() {
       return;
     }
 
+    const erroCpf = validarCpfCnpj();
+    if (erroCpf) {
+      setErroCpfCnpj(erroCpf);
+      return;
+    }
+
     setCarregando(true);
 
     try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: nome.trim(),
+          email: email.trim(),
+          password: senha,
+          cpfCnpj: cpfCnpj,
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json();
+        setErro(body.error ?? "Ocorreu um erro inesperado. Tente novamente.");
+        return;
+      }
+
       const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
 
-      const { error } = await supabase.auth.signUp({
+      const { error: loginError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: senha,
-        options: {
-          data: { name: nome.trim() },
-        },
       });
 
-      if (error) {
-        if (
-          error.message.toLowerCase().includes("already registered") ||
-          error.message.toLowerCase().includes("already in use") ||
-          error.message.toLowerCase().includes("email already") ||
-          error.status === 422
-        ) {
-          setErro("Este e-mail já está em uso. Tente fazer login.");
-        } else {
-          setErro(error.message);
-        }
+      if (loginError) {
+        setErro("Conta criada! Faça login para entrar.");
+        window.location.href = "/login";
         return;
       }
 
@@ -72,6 +101,9 @@ export default function PaginaCadastro() {
       setCarregando(false);
     }
   }
+
+  const cpfCnpjDigits = cleanCpfCnpj(cpfCnpj);
+  const cpfCnpjValido = cpfCnpjDigits.length > 0 && validateCpfCnpj(cpfCnpjDigits);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg-base p-4">
@@ -105,6 +137,30 @@ export default function PaginaCadastro() {
               disabled={carregando}
             />
 
+            <div className="relative">
+              <Input
+                id="cpf-cnpj"
+                type="text"
+                label="CPF ou CNPJ"
+                value={cpfCnpj}
+                onChange={handleCpfCnpjChange}
+                onBlur={() => {
+                  const err = validarCpfCnpj();
+                  if (err) setErroCpfCnpj(err);
+                }}
+                placeholder="000.000.000-00"
+                required
+                disabled={carregando}
+                inputMode="numeric"
+                error={erroCpfCnpj ?? undefined}
+              />
+              {cpfCnpjValido && (
+                <span className="absolute right-3 top-9 text-green-500 text-xs font-medium">
+                  ✓ {cpfCnpjLabel(cpfCnpj)} válido
+                </span>
+              )}
+            </div>
+
             <Input
               id="senha"
               type="password"
@@ -136,10 +192,7 @@ export default function PaginaCadastro() {
             />
 
             {erro && (
-              <div
-                role="alert"
-                className="bg-red-50 border border-red-200 rounded-lg p-3"
-              >
+              <div role="alert" className="bg-red-50 border border-red-200 rounded-lg p-3">
                 <p className="text-sm text-red-700">{erro}</p>
               </div>
             )}
@@ -152,6 +205,7 @@ export default function PaginaCadastro() {
                 carregando ||
                 !nome.trim() ||
                 !email.trim() ||
+                !cpfCnpj ||
                 !senha ||
                 !confirmaSenha
               }
@@ -163,10 +217,7 @@ export default function PaginaCadastro() {
 
           <p className="mt-4 text-center text-sm text-text-base/70">
             Já tem conta?{" "}
-            <a
-              href="/login"
-              className="text-brand-primary hover:underline font-medium"
-            >
+            <a href="/login" className="text-brand-primary hover:underline font-medium">
               Entrar
             </a>
           </p>
