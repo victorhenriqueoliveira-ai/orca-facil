@@ -10,6 +10,7 @@ const SubscriptionContext = createContext<SubscriptionInfo>({
   daysLeft: null,
   canWrite: false,
   trialEndsAt: null,
+  isExpired: false,
 });
 
 interface SubscriptionProviderProps {

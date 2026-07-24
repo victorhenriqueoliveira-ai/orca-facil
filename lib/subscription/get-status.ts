@@ -7,6 +7,7 @@ export interface SubscriptionInfo {
   daysLeft: number | null;
   canWrite: boolean;
   trialEndsAt: string | null;
+  isExpired: boolean;
 }
 
 export async function getSubscriptionStatus(userId: string): Promise<SubscriptionInfo> {
@@ -14,7 +15,7 @@ export async function getSubscriptionStatus(userId: string): Promise<Subscriptio
 
   const { data, error } = await supabase
     .from("subscriptions")
-    .select("status, trial_ends_at")
+    .select("status, trial_ends_at, current_period_end")
     .eq("user_id", userId)
     .single();
 
@@ -24,20 +25,28 @@ export async function getSubscriptionStatus(userId: string): Promise<Subscriptio
       daysLeft: null,
       canWrite: false,
       trialEndsAt: null,
+      isExpired: false,
     };
   }
 
-  const status = data.status as SubscriptionStatus;
+  let status = data.status as SubscriptionStatus;
   const trialEndsAt = data.trial_ends_at ?? null;
+  const currentPeriodEnd = data.current_period_end ?? null;
+
+  // Se estava active mas o período expirou, trata como read_only imediatamente
+  let isExpired = false;
+  if (status === "active" && currentPeriodEnd) {
+    isExpired = new Date(currentPeriodEnd).getTime() < Date.now();
+    if (isExpired) status = "read_only";
+  }
 
   let daysLeft: number | null = null;
   if (status === "trial" && trialEndsAt) {
-    const now = new Date();
-    const diffMs = new Date(trialEndsAt).getTime() - now.getTime();
+    const diffMs = new Date(trialEndsAt).getTime() - Date.now();
     daysLeft = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
   }
 
   const canWrite = status === "trial" || status === "active";
 
-  return { status, daysLeft, canWrite, trialEndsAt };
+  return { status, daysLeft, canWrite, trialEndsAt, isExpired };
 }
