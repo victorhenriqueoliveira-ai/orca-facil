@@ -5,7 +5,7 @@ import { createCustomer, createCheckout } from "@/lib/abacatepay/client";
 
 /**
  * POST /api/subscription/checkout
- * Cria ou recupera cliente na AbacatePay, depois inicia checkout de assinatura.
+ * Cria checkout PIX/boleto de 30 dias via AbacatePay.
  */
 export async function POST() {
   const supabase = await createClient();
@@ -28,7 +28,6 @@ export async function POST() {
   const returnUrl = `${appUrl}/assinar`;
 
   try {
-    // Busca abacatepay_customer_id já salvo, se existir
     const serviceClient = createServiceClient();
     const { data: sub } = await serviceClient
       .from("subscriptions")
@@ -38,7 +37,6 @@ export async function POST() {
 
     let customerId = sub?.abacatepay_customer_id ?? null;
 
-    // Se não tem customer na AbacatePay, cria agora
     if (!customerId) {
       const customerRes = await createCustomer({
         email: user.email ?? "",
@@ -48,7 +46,6 @@ export async function POST() {
 
       customerId = customerRes.data.id;
 
-      // Salva o customer ID para reutilizar em próximos checkouts
       await serviceClient
         .from("subscriptions")
         .update({ abacatepay_customer_id: customerId })
@@ -61,7 +58,7 @@ export async function POST() {
       externalId: user.id,
       completionUrl,
       returnUrl,
-      methods: ["CARD"],
+      methods: ["PIX", "BOLETO"],
       metadata: { user_id: user.id },
     });
 

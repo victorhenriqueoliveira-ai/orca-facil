@@ -51,7 +51,7 @@ export async function createCustomer(
 export async function createCheckout(
   payload: CreateCheckoutPayload
 ): Promise<CreateCheckoutResponse> {
-  return abacateRequest<CreateCheckoutResponse>("/subscriptions/create", {
+  return abacateRequest<CreateCheckoutResponse>("/checkouts/create", {
     method: "POST",
     body: JSON.stringify(payload),
   });

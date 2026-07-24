@@ -53,6 +53,30 @@ export async function POST(req: NextRequest) {
 
   try {
     switch (event) {
+      case "checkout.completed": {
+        const userId = data.metadata?.user_id ?? null;
+        if (!userId) {
+          console.warn("[webhook] checkout.completed sem user_id no metadata");
+          return NextResponse.json({ received: true, processed: false });
+        }
+
+        const periodEnd = new Date();
+        periodEnd.setDate(periodEnd.getDate() + 30);
+
+        const { error } = await supabase
+          .from("subscriptions")
+          .update({
+            status: "active",
+            current_period_end: periodEnd.toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", userId);
+
+        if (error) throw error;
+        result = `checkout.completed → status=active, period_end=${periodEnd.toISOString()}`;
+        break;
+      }
+
       case "subscription.completed": {
         // Tenta por subscription_id; se não achar, tenta por user_id do metadata
         const userId = data.metadata?.user_id ?? null;
