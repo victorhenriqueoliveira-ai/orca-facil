@@ -2,12 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
-  // Force Vercel to include the Chromium binary in the PDF route's Lambda bundle.
-  // Without this, @sparticuz/chromium/bin is excluded and executablePath() fails.
+  // Include Chromium brotli files for all API routes so they are available at runtime.
+  // The bin directory is excluded by Vercel's file-tracing heuristic; this forces inclusion.
   outputFileTracingIncludes: {
-    "/api/quotes/[id]/pdf": [
-      "./node_modules/@sparticuz/chromium/bin/**",
-    ],
+    "/api/**": ["./node_modules/@sparticuz/chromium/bin/**"],
   },
 };
 
