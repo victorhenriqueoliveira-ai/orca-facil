@@ -19,6 +19,7 @@ interface QuoteData {
   quote_number: number;
   title: string | null;
   notes: string | null;
+  show_margin_on_pdf: boolean;
   customer: { id: string; name: string; email: string | null; phone: string | null } | null;
   versions: QuoteVersion[];
 }
@@ -233,6 +234,7 @@ export function StepReview({ quoteId, versionId, onNext, onBack }: StepReviewPro
   const [rooms, setRooms] = useState<QuoteRoom[]>([]);
   const [marginPct, setMarginPct] = useState<number>(0);
   const [marginInput, setMarginInput] = useState<string>("0");
+  const [showMarginOnPdf, setShowMarginOnPdf] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [savingMargin, setSavingMargin] = useState(false);
@@ -257,6 +259,7 @@ export function StepReview({ quoteId, versionId, onNext, onBack }: StepReviewPro
 
         const quoteData: QuoteData = data.quote;
         setQuote(quoteData);
+        setShowMarginOnPdf(quoteData.show_margin_on_pdf !== false);
 
         // Usar a versão correspondente ao versionId
         const version = quoteData.versions.find((v) => v.id === versionId) ?? quoteData.versions[0];
@@ -309,6 +312,15 @@ export function StepReview({ quoteId, versionId, onNext, onBack }: StepReviewPro
         saveMargin(parsed);
       }, 800);
     }
+  }
+
+  async function handleToggleShowMargin(value: boolean) {
+    setShowMarginOnPdf(value);
+    await fetch(`/api/quotes/${quoteId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ show_margin_on_pdf: value }),
+    });
   }
 
   function handleMarginBlur() {
@@ -414,6 +426,29 @@ export function StepReview({ quoteId, versionId, onNext, onBack }: StepReviewPro
           )}
         </div>
       </div>
+
+      {/* Toggle ocultar margem no PDF */}
+      <label className="flex items-center gap-3 cursor-pointer select-none border border-gray-200 rounded-xl bg-white p-4">
+        <div className="flex-1">
+          <p className="text-sm font-medium text-gray-700">Exibir % de lucro no orçamento</p>
+          <p className="text-xs text-gray-400">Quando desativado, o cliente não vê a margem aplicada.</p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={showMarginOnPdf}
+          onClick={() => handleToggleShowMargin(!showMarginOnPdf)}
+          className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+            showMarginOnPdf ? "bg-blue-600" : "bg-gray-300"
+          }`}
+        >
+          <span
+            className={`inline-block h-5 w-5 mt-0.5 rounded-full bg-white shadow transition-transform ${
+              showMarginOnPdf ? "translate-x-5" : "translate-x-0.5"
+            }`}
+          />
+        </button>
+      </label>
 
       {/* Ambientes e itens */}
       {rooms.length === 0 ? (

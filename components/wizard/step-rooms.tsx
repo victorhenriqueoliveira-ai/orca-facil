@@ -60,6 +60,8 @@ export function StepRooms({
   const [addingItemToRoomId, setAddingItemToRoomId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [addingRoom, setAddingRoom] = useState(false);
+  const [renamingRoomId, setRenamingRoomId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   // State for adding new version
   const [showAddVersionModal, setShowAddVersionModal] = useState(false);
@@ -166,6 +168,34 @@ export function StepRooms({
       setError("Erro ao adicionar ambiente");
     } finally {
       setAddingRoom(false);
+    }
+  }
+
+  async function handleRenameRoom(roomId: string) {
+    const name = renameValue.trim();
+    if (!name) {
+      setRenamingRoomId(null);
+      return;
+    }
+    const room = rooms.find((r) => r.id === roomId);
+    if (room && name === room.name) {
+      setRenamingRoomId(null);
+      return;
+    }
+    try {
+      const res = await fetch(
+        `/api/quotes/${quoteId}/versions/${versionId}/rooms/${roomId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+        }
+      );
+      if (res.ok) {
+        setRooms((prev) => prev.map((r) => r.id === roomId ? { ...r, name } : r));
+      }
+    } finally {
+      setRenamingRoomId(null);
     }
   }
 
@@ -323,9 +353,34 @@ export function StepRooms({
       <div className="flex flex-col gap-4">
         {rooms.map((room) => (
           <div key={room.id} className="border border-gray-200 rounded-lg overflow-hidden">
-            <div className="bg-gray-50 px-4 py-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-800">{room.name}</h3>
-              <span className="text-xs text-gray-500">
+            <div className="bg-gray-50 px-4 py-3 flex items-center justify-between gap-2">
+              {renamingRoomId === room.id ? (
+                <input
+                  type="text"
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onBlur={() => handleRenameRoom(room.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleRenameRoom(room.id);
+                    if (e.key === "Escape") setRenamingRoomId(null);
+                  }}
+                  className="flex-1 text-sm font-semibold text-gray-800 border border-blue-400 rounded px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  autoFocus
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => { setRenamingRoomId(room.id); setRenameValue(room.name); }}
+                  className="text-sm font-semibold text-gray-800 hover:text-blue-600 text-left flex items-center gap-1.5 group"
+                  title="Clique para renomear"
+                >
+                  {room.name}
+                  <svg className="w-3.5 h-3.5 text-gray-400 group-hover:text-blue-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828A2 2 0 0110 16.414H8v-2a2 2 0 01.586-1.414z" />
+                  </svg>
+                </button>
+              )}
+              <span className="text-xs text-gray-500 shrink-0">
                 {room.items.length} {room.items.length === 1 ? "item" : "itens"}
               </span>
             </div>
