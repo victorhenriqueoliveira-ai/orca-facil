@@ -33,6 +33,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
       title,
       status,
       notes,
+      show_margin_on_pdf,
       customer_id,
       customers ( id, name, email, phone ),
       quote_versions (
@@ -96,6 +97,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
       title: quote.title,
       status: quote.status,
       notes: quote.notes,
+      show_margin_on_pdf: quote.show_margin_on_pdf !== false,
       customer: quote.customers ?? null,
       versions,
     },
@@ -145,7 +147,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const { profit_margin_pct, title, notes, version_id, status } = body;
+  const { profit_margin_pct, title, notes, version_id, status, show_margin_on_pdf } = body;
 
   // Validar status se fornecido
   const validStatuses = ["draft", "sent", "accepted", "rejected", "expired"];
@@ -156,11 +158,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     );
   }
 
-  // Atualizar campos do quote (title, notes, status)
+  // Atualizar campos do quote (title, notes, status, show_margin_on_pdf)
   const quoteUpdates: Record<string, unknown> = {};
   if (typeof title === "string") quoteUpdates.title = title.trim() || null;
   if (typeof notes === "string") quoteUpdates.notes = notes.trim() || null;
   if (typeof status === "string") quoteUpdates.status = status;
+  if (typeof show_margin_on_pdf === "boolean") quoteUpdates.show_margin_on_pdf = show_margin_on_pdf;
 
   if (Object.keys(quoteUpdates).length > 0) {
     const { error: updateError } = await supabase
@@ -203,6 +206,41 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (versionError) {
       return NextResponse.json({ error: versionError.message }, { status: 500 });
     }
+  }
+
+  return NextResponse.json({ success: true });
+}
+
+/**
+ * DELETE /api/quotes/[id]
+ * Exclui o orçamento e todos os dados relacionados (cascade).
+ */
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
+
+  const subscription = await getSubscriptionStatus(user.id);
+  if (subscription.status === "read_only" || subscription.status === "cancelled") {
+    return NextResponse.json({ error: "Assinatura necessária" }, { status: 403 });
+  }
+
+  const { id: quoteId } = await params;
+
+  const { error } = await supabase
+    .from("quotes")
+    .delete()
+    .eq("id", quoteId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

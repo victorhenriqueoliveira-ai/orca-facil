@@ -2,6 +2,36 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSubscriptionStatus } from "@/lib/subscription/get-status";
 
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+  const { data, error } = await supabase
+    .from("catalog_items")
+    .select("id, name, type, unit, unit_price, is_active, image_url, created_at")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (error || !data) return NextResponse.json({ error: "Item not found" }, { status: 404 });
+
+  // Gerar signed URL se tiver imagem
+  let imageSignedUrl: string | null = null;
+  if (data.image_url) {
+    const { data: signed } = await supabase.storage
+      .from("catalog")
+      .createSignedUrl(data.image_url, 3600);
+    imageSignedUrl = signed?.signedUrl ?? null;
+  }
+
+  return NextResponse.json({ ...data, imageSignedUrl });
+}
+
 /**
  * PATCH /api/catalog/[id]
  * Atualiza parcialmente um item do catálogo.
@@ -92,4 +122,26 @@ export async function PATCH(
   }
 
   return NextResponse.json(data);
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const subscription = await getSubscriptionStatus(user.id);
+  if (!subscription.canWrite) return NextResponse.json({ error: "Subscription required" }, { status: 403 });
+
+  const { id } = await params;
+  const { error } = await supabase
+    .from("catalog_items")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
 }

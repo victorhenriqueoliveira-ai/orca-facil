@@ -14,14 +14,11 @@ interface Customer {
   created_at: string;
 }
 
-type ModalMode = "create" | "edit" | null;
-
 export default function ClientesPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [modalMode, setModalMode] = useState<ModalMode>(null);
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +38,6 @@ export default function ClientesPage() {
     }
   }, []);
 
-  // Debounce 300ms para busca em tempo real
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchCustomers(search);
@@ -61,42 +57,11 @@ export default function ClientesPage() {
         const err = await res.json();
         throw new Error(err.error ?? "Erro ao criar cliente");
       }
-      setModalMode(null);
+      setShowCreate(false);
       fetchCustomers(search);
     } finally {
       setIsSaving(false);
     }
-  }
-
-  async function handleEdit(data: CustomerFormData) {
-    if (!editingCustomer) return;
-    setIsSaving(true);
-    try {
-      const res = await fetch(`/api/customers/${editingCustomer.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error ?? "Erro ao editar cliente");
-      }
-      setModalMode(null);
-      setEditingCustomer(null);
-      fetchCustomers(search);
-    } finally {
-      setIsSaving(false);
-    }
-  }
-
-  function openEdit(customer: Customer) {
-    setEditingCustomer(customer);
-    setModalMode("edit");
-  }
-
-  function closeModal() {
-    setModalMode(null);
-    setEditingCustomer(null);
   }
 
   return (
@@ -104,7 +69,7 @@ export default function ClientesPage() {
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold text-text-base">Clientes</h1>
         <button
-          onClick={() => setModalMode("create")}
+          onClick={() => setShowCreate(true)}
           className="bg-brand-primary text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-brand-primary/90 transition-colors"
         >
           + Novo cliente
@@ -116,7 +81,7 @@ export default function ClientesPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Buscar por nome ou telefone..."
-        className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 mb-4"
+        className="w-full border border-border rounded-lg px-3 py-2 text-sm text-text-base bg-bg-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50 mb-4"
       />
 
       {error && (
@@ -132,66 +97,46 @@ export default function ClientesPage() {
       ) : (
         <ul className="flex flex-col gap-2">
           {customers.map((customer) => (
-            <li
-              key={customer.id}
-              className="bg-bg-base border border-border rounded-lg p-4 flex items-center justify-between"
-            >
-              <Link href={`/clientes/${customer.id}`} className="flex-1 min-w-0">
-                <p className="font-medium text-text-base truncate">{customer.name}</p>
-                {customer.phone && (
-                  <p className="text-sm text-text-base/50">{formatPhoneBR(customer.phone)}</p>
-                )}
-                {customer.email && !customer.phone && (
-                  <p className="text-sm text-text-base/50">{customer.email}</p>
-                )}
-              </Link>
-              <button
-                onClick={() => openEdit(customer)}
-                className="ml-3 text-sm text-brand-primary hover:text-brand-primary/80 flex-shrink-0"
+            <li key={customer.id}>
+              <Link
+                href={`/clientes/${customer.id}`}
+                className="bg-bg-base border border-border rounded-lg p-4 flex items-center justify-between hover:border-brand-primary/40 transition-colors block"
               >
-                Editar
-              </button>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-text-base truncate">{customer.name}</p>
+                  {customer.phone && (
+                    <p className="text-sm text-text-base/50">{formatPhoneBR(customer.phone)}</p>
+                  )}
+                  {customer.email && !customer.phone && (
+                    <p className="text-sm text-text-base/50">{customer.email}</p>
+                  )}
+                </div>
+                <span className="ml-3 text-sm text-brand-primary flex-shrink-0">›</span>
+              </Link>
             </li>
           ))}
         </ul>
       )}
 
-      {/* Modal / Bottom sheet */}
-      {modalMode && (
-        <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="bg-bg-base w-full sm:max-w-md sm:rounded-xl rounded-t-2xl max-h-[90vh] overflow-y-auto shadow-xl">
-            <div className="flex items-center justify-between px-4 pt-4">
-              <h2 className="text-base font-semibold text-text-base">
-                {modalMode === "create" ? "Novo cliente" : "Editar cliente"}
-              </h2>
+      {/* Tela de criar cliente (full-page overlay) */}
+      {showCreate && (
+        <div className="fixed inset-0 z-50 bg-bg-base overflow-y-auto">
+          <div className="max-w-lg mx-auto px-4 py-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-text-base">Novo cliente</h2>
               <button
-                onClick={closeModal}
-                className="text-text-base/50 hover:text-text-base"
+                onClick={() => setShowCreate(false)}
+                className="text-text-base/50 hover:text-text-base text-xl leading-none"
                 aria-label="Fechar"
               >
                 ✕
               </button>
             </div>
             <CustomerForm
-              initialData={
-                editingCustomer
-                  ? {
-                      name: editingCustomer.name,
-                      phone: editingCustomer.phone ?? "",
-                      email: editingCustomer.email ?? "",
-                      address: editingCustomer.address ?? "",
-                      notes: editingCustomer.notes ?? "",
-                    }
-                  : undefined
-              }
-              onSubmit={modalMode === "create" ? handleCreate : handleEdit}
-              onCancel={closeModal}
+              onSubmit={handleCreate}
+              onCancel={() => setShowCreate(false)}
               isLoading={isSaving}
-              submitLabel={modalMode === "create" ? "Criar cliente" : "Salvar alterações"}
+              submitLabel="Criar cliente"
             />
           </div>
         </div>

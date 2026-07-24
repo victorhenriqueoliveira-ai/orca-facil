@@ -68,10 +68,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       `
       id,
       quote_number,
+      title,
       status,
       notes,
       validity_days,
       created_at,
+      show_margin_on_pdf,
       user_id,
       customers ( id, name, phone, email, address ),
       quote_versions (
@@ -206,9 +208,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
   const pdfData: PdfQuoteData = {
     quoteNumber: quote.quote_number,
+    title: (quote.title as string | null) ?? null,
     createdAt: quote.created_at as string,
     validityDays,
     notes: quote.notes as string | null,
+    showMarginOnPdf: (quote.show_margin_on_pdf as boolean) !== false,
     customer: rawCustomer
       ? {
           name: rawCustomer.name,

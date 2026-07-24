@@ -33,9 +33,11 @@ export interface PdfVersion {
 
 export interface PdfQuoteData {
   quoteNumber: number;
+  title: string | null;
   createdAt: string;
   validityDays: number;
   notes: string | null;
+  showMarginOnPdf: boolean;
   customer: {
     name: string;
     phone: string | null;
@@ -348,6 +350,10 @@ function renderHeader(data: PdfQuoteData): string {
   const cityLine = data.profile.city ? `<div class="meta">${data.profile.city}</div>` : "";
   const phoneLine = data.profile.phone ? `<div class="meta">${data.profile.phone}</div>` : "";
 
+  const titleLine = data.title
+    ? `<div class="meta" style="margin-top:4px;font-style:italic;">${escapeHtml(data.title)}</div>`
+    : "";
+
   return `
     <div class="header">
       <div class="header-logo">${logoHtml}</div>
@@ -356,6 +362,7 @@ function renderHeader(data: PdfQuoteData): string {
         ${cityLine}
         ${phoneLine}
         <div class="quote-badge">Orçamento #${data.quoteNumber}</div>
+        ${titleLine}
         <div class="meta" style="margin-top:6px;">Emitido em ${formatDate(data.createdAt)}</div>
         <div class="validity-badge" style="margin-top:6px;">Válido por ${data.validityDays} dias</div>
       </div>
@@ -473,10 +480,7 @@ function renderRoomDetailed(room: PdfRoom, marginPct: number): string {
 // Template: totals box
 // ----------------------------------------------------------------
 
-function renderTotals(versions: PdfVersion[]): string {
-  // Sum totals across all versions for overall grand total display
-  const allRooms = versions.flatMap((v) => v.rooms.map((r) => ({ ...r, marginPct: v.profit_margin_pct })));
-
+function renderTotals(versions: PdfVersion[], showMargin: boolean): string {
   // Per-version totals
   const versionTotalsHtml = versions
     .map((v) => {
@@ -496,7 +500,7 @@ function renderTotals(versions: PdfVersion[]): string {
     const totals = calculateTotal(v.rooms, v.profit_margin_pct);
 
     const marginRow =
-      v.profit_margin_pct > 0
+      showMargin && v.profit_margin_pct > 0
         ? `
         <div class="totals-row">
           <span>Margem de lucro (${v.profit_margin_pct}%)</span>
@@ -505,12 +509,13 @@ function renderTotals(versions: PdfVersion[]): string {
       `
         : "";
 
+    const subtotalRow = showMargin && v.profit_margin_pct > 0
+      ? `<div class="totals-row"><span>Total bruto</span><span>${formatBRL(totals.grandTotalBruto)}</span></div>`
+      : "";
+
     return `
       <div class="totals-box">
-        <div class="totals-row">
-          <span>Total bruto</span>
-          <span>${formatBRL(totals.grandTotalBruto)}</span>
-        </div>
+        ${subtotalRow}
         ${marginRow}
         <div class="totals-row grand">
           <span>Total final</span>
@@ -525,9 +530,6 @@ function renderTotals(versions: PdfVersion[]): string {
     const totals = calculateTotal(v.rooms, v.profit_margin_pct);
     return acc + totals.grandTotal;
   }, 0);
-
-  // suppress unused warning
-  void allRooms;
 
   return `
     <div class="totals-box">
@@ -669,7 +671,7 @@ export function generatePdfHtml(data: PdfQuoteData, mode: PdfMode): string {
   const headerHtml = renderHeader(data);
   const clientHtml = renderClient(data.customer);
   const comparativeHtml = renderComparativeTable(data.versions);
-  const totalsHtml = renderTotals(data.versions);
+  const totalsHtml = renderTotals(data.versions, data.showMarginOnPdf);
   const footerHtml = renderFooter(data);
 
   // Build per-version room sections

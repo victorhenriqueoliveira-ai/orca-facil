@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import type { CatalogItem } from "@/components/catalog-item-form";
 import { CatalogItemForm } from "@/components/catalog-item-form";
-import type { Metadata } from "next";
 
 type Tab = "material" | "service";
 
@@ -12,6 +12,7 @@ function formatPrice(price: number) {
 }
 
 export default function CatalogoPage() {
+  const router = useRouter();
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,8 +72,7 @@ export default function CatalogoPage() {
   }
 
   function openEdit(item: CatalogItem) {
-    setEditingItem(item);
-    setShowForm(true);
+    router.push(`/catalogo/${item.id}`);
   }
 
   function closeForm() {
@@ -182,13 +182,27 @@ export default function CatalogoPage() {
         </div>
       )}
 
-      {/* Bottom sheet / modal de formulário */}
+      {/* Tela de criação de novo item */}
       {showForm && (
-        <CatalogItemForm
-          item={editingItem}
-          onClose={closeForm}
-          onSuccess={handleFormSuccess}
-        />
+        <div className="fixed inset-0 z-50 bg-bg-base overflow-y-auto">
+          <div className="max-w-lg mx-auto px-4 py-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-text-base">Novo item</h2>
+              <button
+                onClick={closeForm}
+                className="text-text-base/50 hover:text-text-base text-xl leading-none"
+                aria-label="Fechar"
+              >
+                ✕
+              </button>
+            </div>
+            <CatalogItemForm
+              item={null}
+              onClose={closeForm}
+              onSuccess={handleFormSuccess}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

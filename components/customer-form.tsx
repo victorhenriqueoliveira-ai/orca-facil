@@ -67,7 +67,7 @@ export function CustomerForm({
       )}
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="customer-name" className="text-sm font-medium text-gray-700">
+        <label htmlFor="customer-name" className="text-sm font-medium text-text-base">
           Nome <span className="text-red-500">*</span>
         </label>
         <input
@@ -77,12 +77,12 @@ export function CustomerForm({
           onChange={(e) => setName(e.target.value)}
           placeholder="Nome do cliente"
           required
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-border rounded-lg px-3 py-2 text-sm text-text-base bg-bg-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
         />
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="customer-phone" className="text-sm font-medium text-gray-700">
+        <label htmlFor="customer-phone" className="text-sm font-medium text-text-base">
           Telefone
         </label>
         <input
@@ -92,12 +92,12 @@ export function CustomerForm({
           value={phone}
           onChange={(e) => setPhone(formatPhoneBR(e.target.value))}
           placeholder="(11) 99999-9999"
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-border rounded-lg px-3 py-2 text-sm text-text-base bg-bg-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
         />
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="customer-email" className="text-sm font-medium text-gray-700">
+        <label htmlFor="customer-email" className="text-sm font-medium text-text-base">
           E-mail
         </label>
         <input
@@ -106,12 +106,12 @@ export function CustomerForm({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="cliente@email.com"
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-border rounded-lg px-3 py-2 text-sm text-text-base bg-bg-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
         />
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="customer-address" className="text-sm font-medium text-gray-700">
+        <label htmlFor="customer-address" className="text-sm font-medium text-text-base">
           Endereço
         </label>
         <input
@@ -120,12 +120,12 @@ export function CustomerForm({
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           placeholder="Rua, número, bairro..."
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-border rounded-lg px-3 py-2 text-sm text-text-base bg-bg-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
         />
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="customer-notes" className="text-sm font-medium text-gray-700">
+        <label htmlFor="customer-notes" className="text-sm font-medium text-text-base">
           Observações
         </label>
         <textarea
@@ -134,7 +134,7 @@ export function CustomerForm({
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Observações adicionais..."
           rows={3}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          className="border border-border rounded-lg px-3 py-2 text-sm text-text-base bg-bg-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50 resize-none"
         />
       </div>
 
@@ -142,14 +142,14 @@ export function CustomerForm({
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          className="flex-1 border border-border rounded-lg px-4 py-2 text-sm font-medium text-text-base hover:bg-border/20 transition-colors"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="flex-1 bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 bg-brand-primary text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-brand-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isLoading ? "Salvando..." : submitLabel}
         </button>

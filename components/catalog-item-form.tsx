@@ -9,6 +9,7 @@ export interface CatalogItem {
   unit: string;
   unit_price: number;
   is_active: boolean;
+  image_url?: string | null;
   created_at: string;
 }
 
@@ -74,102 +75,91 @@ export function CatalogItemForm({ item, onClose, onSuccess }: CatalogItemFormPro
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50"
-      role="dialog"
-      aria-modal="true"
-      aria-label={isEditing ? "Editar item do catálogo" : "Adicionar item ao catálogo"}
-    >
-      <div className="w-full max-w-lg rounded-t-2xl bg-white p-6 shadow-xl">
-        <h2 className="mb-4 text-lg font-semibold">
-          {isEditing ? "Editar item" : "Novo item"}
-        </h2>
+    <div role="form" aria-label={isEditing ? "Editar item do catálogo" : "Adicionar item ao catálogo"}>
+      {error && (
+        <div className="mb-3 rounded bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+          {error}
+        </div>
+      )}
 
-        {error && (
-          <div className="mb-3 rounded bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
-            {error}
-          </div>
-        )}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="catalog-name" className="block text-sm font-medium text-text-base mb-1">
+            Nome <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="catalog-name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            className="w-full rounded-lg border border-border px-3 py-2 text-sm text-text-base bg-bg-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+            placeholder="Ex: Tábua de MDF 15mm"
+          />
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="catalog-name" className="block text-sm font-medium text-gray-700">
-              Nome
-            </label>
-            <input
-              id="catalog-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Ex: Tábua de MDF 15mm"
-            />
-          </div>
+        <div>
+          <label htmlFor="catalog-type" className="block text-sm font-medium text-text-base mb-1">
+            Tipo
+          </label>
+          <select
+            id="catalog-type"
+            value={type}
+            onChange={(e) => setType(e.target.value as "material" | "service")}
+            className="w-full rounded-lg border border-border px-3 py-2 text-sm text-text-base bg-bg-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+          >
+            <option value="material">Material</option>
+            <option value="service">Serviço</option>
+          </select>
+        </div>
 
-          <div>
-            <label htmlFor="catalog-type" className="block text-sm font-medium text-gray-700">
-              Tipo
-            </label>
-            <select
-              id="catalog-type"
-              value={type}
-              onChange={(e) => setType(e.target.value as "material" | "service")}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="material">Material</option>
-              <option value="service">Serviço</option>
-            </select>
-          </div>
+        <div>
+          <label htmlFor="catalog-unit" className="block text-sm font-medium text-text-base mb-1">
+            Unidade
+          </label>
+          <input
+            id="catalog-unit"
+            type="text"
+            value={unit}
+            onChange={(e) => setUnit(e.target.value)}
+            className="w-full rounded-lg border border-border px-3 py-2 text-sm text-text-base bg-bg-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+            placeholder="un, m², m, kg..."
+          />
+        </div>
 
-          <div>
-            <label htmlFor="catalog-unit" className="block text-sm font-medium text-gray-700">
-              Unidade
-            </label>
-            <input
-              id="catalog-unit"
-              type="text"
-              value={unit}
-              onChange={(e) => setUnit(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="un, m², m, kg..."
-            />
-          </div>
+        <div>
+          <label htmlFor="catalog-unit-price" className="block text-sm font-medium text-text-base mb-1">
+            Preço unitário (R$) <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="catalog-unit-price"
+            type="text"
+            inputMode="decimal"
+            value={unitPrice}
+            onChange={(e) => setUnitPrice(e.target.value)}
+            required
+            className="w-full rounded-lg border border-border px-3 py-2 text-sm text-text-base bg-bg-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+            placeholder="0,00"
+          />
+        </div>
 
-          <div>
-            <label htmlFor="catalog-unit-price" className="block text-sm font-medium text-gray-700">
-              Preço unitário (R$)
-            </label>
-            <input
-              id="catalog-unit-price"
-              type="text"
-              inputMode="decimal"
-              value={unitPrice}
-              onChange={(e) => setUnitPrice(e.target.value)}
-              required
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="0,00"
-            />
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading ? "Salvando..." : isEditing ? "Salvar" : "Adicionar"}
-            </button>
-          </div>
-        </form>
-      </div>
+        <div className="flex gap-3 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-base hover:bg-border/20 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-1 rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50 transition-colors"
+          >
+            {loading ? "Salvando..." : isEditing ? "Salvar" : "Adicionar"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

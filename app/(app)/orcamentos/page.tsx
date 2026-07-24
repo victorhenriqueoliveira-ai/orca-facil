@@ -23,6 +23,7 @@ export default function OrcamentosPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
   const limit = 20;
@@ -99,6 +100,24 @@ export default function OrcamentosPage() {
       fetchQuotes(statusFilter, page);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao atualizar status");
+    }
+  }
+
+  async function handleDelete(id: string) {
+    setDeletingId(id);
+    setFeedbackMessage(null);
+    try {
+      const res = await fetch(`/api/quotes/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error ?? "Erro ao excluir orçamento");
+      }
+      setFeedbackMessage("Orçamento excluído.");
+      fetchQuotes(statusFilter, page);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao excluir orçamento");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -190,7 +209,9 @@ export default function OrcamentosPage() {
                   onDuplicate={handleDuplicate}
                   onStatusChange={handleStatusChange}
                   onViewPdf={handleViewPdf}
+                  onDelete={handleDelete}
                   isDuplicating={duplicatingId === quote.id}
+                  isDeleting={deletingId === quote.id}
                 />
               </li>
             ))}
