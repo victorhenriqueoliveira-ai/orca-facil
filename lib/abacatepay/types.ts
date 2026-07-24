@@ -76,8 +76,10 @@ export type WebhookEventType =
 
 export interface WebhookSubscriptionData {
   id: string;
-  customerId: string;
-  status: string;
+  customerId?: string;
+  status?: string;
+  amount?: number;
+  receiptUrl?: string | null;
   currentPeriodEnd?: string;
   cancelledAt?: string;
   metadata?: Record<string, string>;

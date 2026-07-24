@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useSubscription } from "@/components/subscription-provider";
 
 interface Pagamento {
@@ -33,6 +34,9 @@ interface Perfil {
 
 export default function ConfiguracoesPage() {
   const subscription = useSubscription();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const aba = (searchParams.get("aba") ?? "perfil") as "perfil" | "assinatura";
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [logoSignedUrl, setLogoSignedUrl] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(true);
@@ -229,6 +233,24 @@ export default function ConfiguracoesPage() {
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Configurações</h1>
 
+      {/* Tabs */}
+      <div className="flex gap-1 bg-bg-base rounded-xl p-1 border border-border">
+        {(["perfil", "assinatura"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => router.push(`/configuracoes?aba=${t}`)}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${
+              aba === t
+                ? "bg-white text-brand-primary shadow-sm border border-border"
+                : "text-text-base/60 hover:text-text-base"
+            }`}
+          >
+            {t === "perfil" ? "Perfil" : "Assinatura"}
+          </button>
+        ))}
+      </div>
+
+      {aba === "perfil" && <>
       {mensagem && (
         <div
           role="alert"
@@ -464,7 +486,9 @@ export default function ConfiguracoesPage() {
           {salvando ? "Salvando..." : "Salvar"}
         </button>
       </form>
+      </>}
 
+      {aba === "assinatura" && <>
       {/* Seção: Assinatura */}
       <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
         <h2 className="text-lg font-semibold text-gray-800">Assinatura</h2>
@@ -598,6 +622,7 @@ export default function ConfiguracoesPage() {
           </div>
         )}
       </section>
+      </>}
     </div>
   );
 }
