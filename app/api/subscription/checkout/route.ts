@@ -31,9 +31,10 @@ export async function POST() {
 
     return NextResponse.json({ checkout_url: checkout.checkout_url });
   } catch (err) {
-    console.error("[checkout] AbacatePay error:", err);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[checkout] AbacatePay error:", message);
     return NextResponse.json(
-      { error: "Failed to create checkout" },
+      { error: "Failed to create checkout", detail: message },
       { status: 502 }
     );
   }
