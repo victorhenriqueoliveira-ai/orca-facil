@@ -47,9 +47,7 @@ export default function PaginaCadastro() {
         email: email.trim(),
         password: senha,
         options: {
-          data: {
-            name: nome.trim(),
-          },
+          data: { name: nome.trim() },
         },
       });
 
@@ -64,9 +62,10 @@ export default function PaginaCadastro() {
         } else {
           setErro(error.message);
         }
-      } else {
-        window.location.href = "/dashboard";
+        return;
       }
+
+      window.location.href = "/dashboard";
     } catch {
       setErro("Ocorreu um erro inesperado. Tente novamente.");
     } finally {
