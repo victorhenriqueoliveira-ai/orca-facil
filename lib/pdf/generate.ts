@@ -11,10 +11,12 @@ async function launchBrowser() {
 
   if (isProd) {
     const chromium = await import("@sparticuz/chromium");
+    // @sparticuz/chromium@147+ already includes --headless='shell' in args.
+    // Passing headless:true would add --headless=new (conflict). Use 'shell' instead.
     return puppeteer.default.launch({
       args: chromium.default.args,
       executablePath: await chromium.default.executablePath(),
-      headless: true,
+      headless: "shell",
     });
   }
 

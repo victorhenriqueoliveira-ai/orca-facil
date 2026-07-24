@@ -274,8 +274,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     pdfBuffer = await generatePdfFromHtml(html);
   } catch (err) {
-    console.error("Erro ao gerar PDF:", err);
-    return NextResponse.json({ error: "Erro ao gerar PDF" }, { status: 500 });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("Erro ao gerar PDF:", msg);
+    return NextResponse.json({ error: "Erro ao gerar PDF", detail: msg }, { status: 500 });
   }
 
   // Upload to Supabase Storage (service role — bypasses RLS)
