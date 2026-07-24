@@ -11,18 +11,12 @@ async function launchBrowser() {
 
   if (isProd) {
     const chromium = await import("@sparticuz/chromium");
-    // If CHROMIUM_PACK_URL is set (or if the local bin is missing), download the
-    // brotli pack from GitHub releases and cache it in /tmp.  This avoids relying
-    // on Vercel's file-tracing to include the binary in the Lambda bundle.
-    const packUrl =
-      process.env.CHROMIUM_PACK_URL ??
-      "https://github.com/Sparticuz/chromium/releases/download/v147.0.0/chromium-v147.0.0-pack.tar";
-    const executablePath = await chromium.default.executablePath(packUrl);
     // @sparticuz/chromium@147+ already includes --headless='shell' in args.
     // Passing headless:true would add --headless=new (conflict). Use 'shell' instead.
+    // The bin/ brotli files are included in the Lambda bundle via outputFileTracingIncludes.
     return puppeteer.default.launch({
       args: chromium.default.args,
-      executablePath,
+      executablePath: await chromium.default.executablePath(),
       headless: "shell",
     });
   }
