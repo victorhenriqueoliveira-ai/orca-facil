@@ -133,7 +133,7 @@ export function Sidebar({ className = "" }: SidebarProps) {
 
   return (
     <aside
-      className={`flex-col w-64 min-h-screen bg-white border-r border-border ${className}`}
+      className={`flex-col w-64 h-screen sticky top-0 overflow-y-auto bg-white border-r border-border ${className}`}
     >
       {/* Logo */}
       <div className="px-6 py-5 border-b border-border">
