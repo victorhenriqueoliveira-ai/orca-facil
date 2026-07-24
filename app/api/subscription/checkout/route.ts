@@ -54,7 +54,6 @@ export async function POST() {
 
     const checkout = await createCheckout({
       items: [{ id: productId, quantity: 1 }],
-      customerId,
       externalId: user.id,
       completionUrl,
       returnUrl,
