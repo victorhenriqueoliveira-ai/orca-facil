@@ -34,10 +34,13 @@ export interface CancelSubscriptionResponse {
 // ─── Webhook Events ───────────────────────────────────────────────────────────
 
 export type WebhookEventType =
+  | "subscription.completed"
   | "subscription.activated"
   | "subscription.renewed"
   | "subscription.cancelled"
-  | "subscription.payment_failed";
+  | "subscription.payment_failed"
+  | "subscription.trial_started"
+  | "subscription.plan_changed";
 
 export interface WebhookSubscriptionData {
   id: string;

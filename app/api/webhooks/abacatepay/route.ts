@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
 
   try {
     switch (event_type) {
+      case "subscription.completed":
       case "subscription.activated": {
         const { error } = await supabase
           .from("subscriptions")
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
             throw error;
           }
         }
-        result = "activated → status=active";
+        result = "completed/activated → status=active";
         break;
       }
 
