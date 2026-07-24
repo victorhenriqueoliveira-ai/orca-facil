@@ -61,6 +61,7 @@ export async function POST() {
       externalId: user.id,
       completionUrl,
       returnUrl,
+      methods: ["CARD"],
       metadata: { user_id: user.id },
     });
 

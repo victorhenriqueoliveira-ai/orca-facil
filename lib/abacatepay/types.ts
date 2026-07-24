@@ -33,6 +33,7 @@ export interface CreateCheckoutPayload {
   externalId?: string;
   completionUrl?: string;
   returnUrl?: string;
+  methods?: string[];
   metadata?: Record<string, string>;
 }
 
