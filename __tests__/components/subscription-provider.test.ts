@@ -17,7 +17,7 @@ describe("SubscriptionProvider / useSubscription", () => {
       status: "trial" as const,
       daysLeft: 10,
       canWrite: true,
-      trialEndsAt: new Date(),
+      trialEndsAt: new Date().toISOString(),
     };
     expect(info.canWrite).toBe(true);
     expect(info.status).toBe("trial");
