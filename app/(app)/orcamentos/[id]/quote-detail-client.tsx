@@ -77,6 +77,7 @@ export default function QuoteDetailClient({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeVersionIdx, setActiveVersionIdx] = useState(0);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isSendingToClient, setIsSendingToClient] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
@@ -187,6 +188,40 @@ export default function QuoteDetailClient({
     }
   }
 
+  async function handleSendToClient() {
+    setIsSendingToClient(true);
+    setStatusMsg(null);
+    try {
+      let url = pdfUrl;
+      if (!url) {
+        const res = await fetch(`/api/quotes/${quoteId}/pdf`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: "detailed", version_ids: [] }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Erro ao gerar PDF");
+        url = data.signed_url;
+        setPdfUrl(url);
+        setQuote((prev) => ({ ...prev, status: "sent" }));
+      }
+      if (quote.customer?.phone) {
+        const phone = quote.customer.phone.replace(/\D/g, "");
+        const msg = encodeURIComponent(
+          `Olá ${quote.customer.name}, segue seu orçamento #${quote.quote_number}${quote.title ? ` — ${quote.title}` : ""}:\n${url}`
+        );
+        window.open(`https://wa.me/55${phone}?text=${msg}`, "_blank");
+      } else if (url) {
+        await navigator.clipboard.writeText(url).catch(() => {});
+        setStatusMsg("Link do orçamento copiado!");
+      }
+    } catch (e) {
+      setStatusMsg(e instanceof Error ? e.message : "Erro ao enviar");
+    } finally {
+      setIsSendingToClient(false);
+    }
+  }
+
   // Used to force refresh after returning from edit page
   void refreshQuote;
 
@@ -285,16 +320,41 @@ export default function QuoteDetailClient({
           </button>
         </div>
 
-        {/* Ações */}
+        {/* Ações principais */}
+        <button
+          onClick={handleSendToClient}
+          disabled={isSendingToClient || isGeneratingPdf}
+          className="w-full flex items-center justify-center gap-2 bg-green-600 text-white text-sm font-semibold px-4 py-3.5 rounded-xl disabled:opacity-60 hover:bg-green-700 transition-colors"
+        >
+          {isSendingToClient ? (
+            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+          )}
+          {isSendingToClient
+            ? (pdfUrl ? "Abrindo WhatsApp..." : "Gerando PDF...")
+            : quote.customer?.phone
+              ? "Enviar ao cliente (WhatsApp)"
+              : "Enviar ao cliente"}
+        </button>
+
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={handleGeneratePdf}
-            disabled={isGeneratingPdf}
+            disabled={isGeneratingPdf || isSendingToClient}
             className="flex items-center justify-center gap-2 bg-brand-primary text-white text-sm font-medium px-4 py-3 rounded-xl disabled:opacity-60"
           >
             {isGeneratingPdf ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : "📄"}
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+            )}
             {isGeneratingPdf ? "Gerando..." : "Gerar PDF"}
           </button>
           <Link
@@ -311,27 +371,15 @@ export default function QuoteDetailClient({
           📋 Duplicar
         </button>
 
-        {/* PDF gerado */}
+        {/* PDF gerado — link direto */}
         {pdfUrl && (
           <a
             href={pdfUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full text-center bg-green-600 text-white text-sm font-medium px-4 py-3 rounded-xl"
+            className="block w-full text-center bg-bg-base border border-green-300 text-green-700 text-sm font-medium px-4 py-3 rounded-xl hover:bg-green-50 transition-colors"
           >
-            ✅ Abrir PDF
-          </a>
-        )}
-
-        {/* WhatsApp */}
-        {pdfUrl && quote.customer?.phone && (
-          <a
-            href={`https://wa.me/55${quote.customer.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Olá ${quote.customer.name}, segue o orçamento #${quote.quote_number}: ${pdfUrl}`)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full text-center bg-green-500 text-white text-sm font-medium px-4 py-3 rounded-xl"
-          >
-            💬 Enviar pelo WhatsApp
+            ✅ Abrir PDF gerado
           </a>
         )}
 
