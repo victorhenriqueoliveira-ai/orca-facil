@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { getSubscriptionStatus } from "@/lib/subscription/get-status";
 
 export async function GET(
@@ -20,10 +21,11 @@ export async function GET(
 
   if (error || !data) return NextResponse.json({ error: "Item not found" }, { status: 404 });
 
-  // Gerar signed URL se tiver imagem
+  // Gerar signed URL via service client (bypass RLS para storage)
   let imageSignedUrl: string | null = null;
   if (data.image_url) {
-    const { data: signed } = await supabase.storage
+    const serviceClient = createServiceClient();
+    const { data: signed } = await serviceClient.storage
       .from("catalog")
       .createSignedUrl(data.image_url, 3600);
     imageSignedUrl = signed?.signedUrl ?? null;

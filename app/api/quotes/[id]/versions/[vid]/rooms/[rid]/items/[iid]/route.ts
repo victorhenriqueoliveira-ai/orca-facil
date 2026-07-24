@@ -94,3 +94,28 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
   return NextResponse.json({ item: updatedItem });
 }
+
+/**
+ * DELETE /api/quotes/[id]/versions/[vid]/rooms/[rid]/items/[iid]
+ * Remove um item do ambiente.
+ */
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+
+  const subscription = await getSubscriptionStatus(user.id);
+  if (subscription.status === "read_only" || subscription.status === "cancelled") {
+    return NextResponse.json({ error: "Assinatura necessária" }, { status: 403 });
+  }
+
+  const { id: quoteId, iid: itemId } = await params;
+
+  const { data: quote } = await supabase
+    .from("quotes").select("id").eq("id", quoteId).eq("user_id", user.id).single();
+  if (!quote) return NextResponse.json({ error: "Orçamento não encontrado" }, { status: 404 });
+
+  const { error } = await supabase.from("quote_items").delete().eq("id", itemId);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
+}

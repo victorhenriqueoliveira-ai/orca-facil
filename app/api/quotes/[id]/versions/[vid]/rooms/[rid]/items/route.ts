@@ -72,11 +72,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     );
   }
 
-  // Se catalog_item_id fornecido, validar existência (mas usar snapshot do body — ADR-003)
+  // Se catalog_item_id fornecido, buscar image_url do catálogo (snapshot — ADR-003)
+  let catalogImageUrl: string | null = null;
   if (catalog_item_id && typeof catalog_item_id === "string") {
     const { data: catalogItem, error: catalogError } = await supabase
       .from("catalog_items")
-      .select("id")
+      .select("id, image_url")
       .eq("id", catalog_item_id)
       .eq("user_id", user.id)
       .single();
@@ -84,6 +85,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     if (catalogError || !catalogItem) {
       return NextResponse.json({ error: "Item do catálogo não encontrado" }, { status: 404 });
     }
+    catalogImageUrl = catalogItem.image_url ?? null;
   }
 
   // Buscar itens existentes para definir posição
@@ -106,6 +108,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       unit_price,
       quantity,
       position: count ?? 0,
+      image_url: catalogImageUrl,
     })
     .select("id")
     .single();

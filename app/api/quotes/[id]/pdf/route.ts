@@ -91,7 +91,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             unit,
             unit_price,
             quantity,
-            position
+            position,
+            image_url
           )
         )
       )
@@ -160,6 +161,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         unit_price: number;
         quantity: number;
         position: number;
+        image_url: string | null;
       }>;
     }>;
   };
@@ -174,6 +176,25 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
   const rawVersions = (quote.quote_versions ?? []) as RawVersion[];
   const rawCustomer = quote.customers as unknown as RawCustomer | null;
+
+  // Collect unique item image paths and generate signed URLs in batch
+  const itemImagePaths = new Set<string>();
+  for (const v of rawVersions) {
+    for (const r of v.quote_rooms ?? []) {
+      for (const i of r.quote_items ?? []) {
+        if (i.image_url) itemImagePaths.add(i.image_url);
+      }
+    }
+  }
+  const itemImageSignedUrls = new Map<string, string>();
+  await Promise.all(
+    Array.from(itemImagePaths).map(async (path) => {
+      const { data } = await serviceClient.storage
+        .from("catalog")
+        .createSignedUrl(path, 3600);
+      if (data?.signedUrl) itemImageSignedUrls.set(path, data.signedUrl);
+    })
+  );
 
   const versions: PdfVersion[] = rawVersions
     .filter((v: RawVersion) => selectedVersionIds.includes(v.id))
@@ -192,6 +213,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
               unit: i.unit,
               unit_price: Number(i.unit_price),
               quantity: Number(i.quantity),
+              imageUrl: i.image_url ? (itemImageSignedUrls.get(i.image_url) ?? null) : null,
             })),
         }));
 

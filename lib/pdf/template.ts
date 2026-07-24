@@ -16,6 +16,7 @@ export interface PdfItem {
   unit: string;
   unit_price: number;
   quantity: number;
+  imageUrl?: string | null;
 }
 
 export interface PdfRoom {
@@ -442,15 +443,20 @@ function renderRoomDetailed(room: PdfRoom, marginPct: number): string {
       ? `<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:12px;">Nenhum item</td></tr>`
       : room.items
           .map(
-            (item) => `
+            (item) => {
+              const imgHtml = item.imageUrl
+                ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.name)}" style="width:36px;height:36px;object-fit:cover;border-radius:4px;margin-right:8px;flex-shrink:0;" />`
+                : "";
+              return `
           <tr>
-            <td>${escapeHtml(item.name)}</td>
+            <td><div style="display:flex;align-items:center;">${imgHtml}<span>${escapeHtml(item.name)}</span></div></td>
             <td class="right">${item.quantity}</td>
             <td>${escapeHtml(item.unit)}</td>
             <td class="right">${formatBRL(item.unit_price)}</td>
             <td class="right">${formatBRL(item.unit_price * item.quantity)}</td>
           </tr>
-        `
+        `;
+            }
           )
           .join("");
 
