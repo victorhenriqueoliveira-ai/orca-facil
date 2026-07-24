@@ -91,8 +91,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             unit,
             unit_price,
             quantity,
-            position,
-            image_url
+            position
           )
         )
       )
@@ -161,7 +160,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         unit_price: number;
         quantity: number;
         position: number;
-        image_url: string | null;
       }>;
     }>;
   };
@@ -177,24 +175,38 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   const rawVersions = (quote.quote_versions ?? []) as RawVersion[];
   const rawCustomer = quote.customers as unknown as RawCustomer | null;
 
-  // Collect unique item image paths and generate signed URLs in batch
-  const itemImagePaths = new Set<string>();
+  // Collect all item IDs to optionally fetch their image_url (graceful — column may not exist yet)
+  const allItemIds: string[] = [];
   for (const v of rawVersions) {
     for (const r of v.quote_rooms ?? []) {
-      for (const i of r.quote_items ?? []) {
-        if (i.image_url) itemImagePaths.add(i.image_url);
+      for (const i of r.quote_items ?? []) allItemIds.push(i.id);
+    }
+  }
+  const itemImageUrls = new Map<string, string>();
+  if (allItemIds.length > 0) {
+    const { data: itemImgRows } = await serviceClient
+      .from("quote_items")
+      .select("id, image_url")
+      .in("id", allItemIds)
+      .not("image_url", "is", null);
+    if (itemImgRows) {
+      const paths = new Set<string>();
+      for (const row of itemImgRows as Array<{ id: string; image_url: string | null }>) {
+        if (row.image_url) paths.add(row.image_url);
+      }
+      await Promise.all(
+        Array.from(paths).map(async (path) => {
+          const { data } = await serviceClient.storage.from("catalog").createSignedUrl(path, 3600);
+          if (data?.signedUrl) itemImageUrls.set(path, data.signedUrl);
+        })
+      );
+      for (const row of itemImgRows as Array<{ id: string; image_url: string | null }>) {
+        if (row.image_url && itemImageUrls.has(row.image_url)) {
+          itemImageUrls.set(row.id, itemImageUrls.get(row.image_url)!);
+        }
       }
     }
   }
-  const itemImageSignedUrls = new Map<string, string>();
-  await Promise.all(
-    Array.from(itemImagePaths).map(async (path) => {
-      const { data } = await serviceClient.storage
-        .from("catalog")
-        .createSignedUrl(path, 3600);
-      if (data?.signedUrl) itemImageSignedUrls.set(path, data.signedUrl);
-    })
-  );
 
   const versions: PdfVersion[] = rawVersions
     .filter((v: RawVersion) => selectedVersionIds.includes(v.id))
@@ -213,7 +225,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
               unit: i.unit,
               unit_price: Number(i.unit_price),
               quantity: Number(i.quantity),
-              imageUrl: i.image_url ? (itemImageSignedUrls.get(i.image_url) ?? null) : null,
+              imageUrl: itemImageUrls.get(i.id) ?? null,
             })),
         }));
 

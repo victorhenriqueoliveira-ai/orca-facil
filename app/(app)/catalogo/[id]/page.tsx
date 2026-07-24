@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -22,8 +22,8 @@ export default function CatalogoItemPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { id: itemId } = use(params);
   const router = useRouter();
-  const [itemId, setItemId] = useState<string | null>(null);
   const [item, setItem] = useState<CatalogItemFull | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -42,11 +42,6 @@ export default function CatalogoItemPage({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    params.then(({ id }) => setItemId(id));
-  }, [params]);
-
-  useEffect(() => {
-    if (!itemId) return;
     async function load() {
       setIsLoading(true);
       try {
@@ -72,7 +67,6 @@ export default function CatalogoItemPage({
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!itemId) return;
     setError(null);
     setSuccess(null);
 
@@ -106,7 +100,7 @@ export default function CatalogoItemPage({
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file || !itemId) return;
+    if (!file) return;
 
     setIsUploadingImage(true);
     setError(null);
@@ -129,7 +123,6 @@ export default function CatalogoItemPage({
   }
 
   async function handleRemoveImage() {
-    if (!itemId) return;
     setIsUploadingImage(true);
     try {
       await fetch(`/api/catalog/${itemId}/image`, { method: "DELETE" });
@@ -140,7 +133,6 @@ export default function CatalogoItemPage({
   }
 
   async function handleDelete() {
-    if (!itemId) return;
     setIsDeleting(true);
     try {
       const res = await fetch(`/api/catalog/${itemId}`, { method: "DELETE" });
