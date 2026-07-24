@@ -1,59 +1,91 @@
 /**
- * Tipos TypeScript para integração com AbacatePay REST API.
- * Todos os payloads de webhook e respostas de API são tipados aqui.
+ * Tipos TypeScript para integração com AbacatePay REST API v2.
  */
 
-// ─── Checkout ─────────────────────────────────────────────────────────────────
+// ─── Customer ─────────────────────────────────────────────────────────────────
+
+export interface CreateCustomerPayload {
+  email: string;
+  name?: string;
+  cellphone?: string;
+  taxId?: string;
+  metadata?: Record<string, string>;
+}
+
+export interface CreateCustomerResponse {
+  data: {
+    id: string;
+    email: string;
+    name: string | null;
+    cellphone: string | null;
+    taxId: string | null;
+    devMode: boolean;
+  };
+  success: boolean;
+  error: string | null;
+}
+
+// ─── Subscription Checkout ────────────────────────────────────────────────────
 
 export interface CreateCheckoutPayload {
-  /** Valor em centavos */
-  amount: number;
-  /** URL de retorno após pagamento */
-  redirect_url: string;
-  /** Identificador do usuário no sistema */
-  customer_id: string;
-  /** Descrição do plano */
-  description?: string;
+  items: Array<{ id: string; quantity: number }>;
+  customerId?: string;
+  externalId?: string;
+  completionUrl?: string;
+  returnUrl?: string;
+  metadata?: Record<string, string>;
 }
 
 export interface CreateCheckoutResponse {
-  id: string;
-  checkout_url: string;
-  status: string;
-  created_at: string;
+  data: {
+    id: string;
+    url: string;
+    amount: number;
+    status: string;
+    customerId: string;
+    externalId: string | null;
+    createdAt: string;
+    updatedAt: string;
+  };
+  success: boolean;
+  error: string | null;
 }
 
 // ─── Cancel Subscription ──────────────────────────────────────────────────────
 
 export interface CancelSubscriptionResponse {
-  id: string;
-  status: string;
-  cancelled_at: string;
+  data: {
+    id: string;
+    status: string;
+  };
+  success: boolean;
+  error: string | null;
 }
 
 // ─── Webhook Events ───────────────────────────────────────────────────────────
 
 export type WebhookEventType =
   | "subscription.completed"
-  | "subscription.activated"
   | "subscription.renewed"
   | "subscription.cancelled"
-  | "subscription.payment_failed"
-  | "subscription.trial_started"
-  | "subscription.plan_changed";
+  | "checkout.completed"
+  | "checkout.refunded"
+  | "payout.completed"
+  | "payout.failed";
 
 export interface WebhookSubscriptionData {
   id: string;
-  customer_id: string;
+  customerId: string;
   status: string;
-  current_period_end?: string;
-  cancelled_at?: string;
+  currentPeriodEnd?: string;
+  cancelledAt?: string;
   metadata?: Record<string, string>;
 }
 
 export interface WebhookPayload {
-  event_type: WebhookEventType;
-  abacatepay_subscription_id: string;
+  id: string;
+  event: WebhookEventType;
+  apiVersion: number;
+  devMode: boolean;
   data: WebhookSubscriptionData;
-  created_at: string;
 }
