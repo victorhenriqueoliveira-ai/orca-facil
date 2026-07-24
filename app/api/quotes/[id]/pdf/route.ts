@@ -171,7 +171,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   };
 
   const rawVersions = (quote.quote_versions ?? []) as RawVersion[];
-  const rawCustomer = quote.customers as RawCustomer | null;
+  const rawCustomer = quote.customers as unknown as RawCustomer | null;
 
   const versions: PdfVersion[] = rawVersions
     .filter((v: RawVersion) => selectedVersionIds.includes(v.id))
