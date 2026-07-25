@@ -37,7 +37,7 @@ export function Input({
         id={inputId}
         disabled={disabled}
         className={cn(
-          'w-full rounded-lg border border-border px-3 py-2 text-text-base placeholder:text-text-base/50',
+          'w-full rounded-lg border border-border px-3 py-2 text-text-base placeholder:text-text-base/55',
           'focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-1',
           'bg-white',
           error && 'border-error focus:ring-error',

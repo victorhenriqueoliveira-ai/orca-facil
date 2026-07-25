@@ -44,3 +44,15 @@ button {
 button:disabled {
   cursor: not-allowed;
 }
+
+/* Garante texto visível em todos os inputs, selects e textareas */
+input,
+textarea,
+select {
+  color: var(--color-text-base);
+}
+
+::placeholder {
+  color: rgba(43, 38, 33, 0.55);
+  opacity: 1; /* Firefox reseta opacity do placeholder */
+}
