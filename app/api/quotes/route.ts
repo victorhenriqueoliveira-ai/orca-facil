@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const statusFilter = searchParams.get("status") ?? null;
   const customerIdFilter = searchParams.get("customer_id") ?? null;
+  const textQuery = searchParams.get("q")?.trim() ?? null;
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
   const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") ?? "20", 10)));
   const offset = (page - 1) * limit;
@@ -34,6 +35,14 @@ export async function GET(request: NextRequest) {
 
   if (statusFilter) countQuery = countQuery.eq("status", statusFilter);
   if (customerIdFilter) countQuery = countQuery.eq("customer_id", customerIdFilter);
+  if (textQuery) {
+    const num = parseInt(textQuery, 10);
+    if (!isNaN(num)) {
+      countQuery = countQuery.or(`title.ilike.%${textQuery}%,quote_number.eq.${num}`);
+    } else {
+      countQuery = countQuery.ilike("title", `%${textQuery}%`);
+    }
+  }
 
   const { count, error: countError } = await countQuery;
 
@@ -64,6 +73,14 @@ export async function GET(request: NextRequest) {
 
   if (statusFilter) dataQuery = dataQuery.eq("status", statusFilter);
   if (customerIdFilter) dataQuery = dataQuery.eq("customer_id", customerIdFilter);
+  if (textQuery) {
+    const num = parseInt(textQuery, 10);
+    if (!isNaN(num)) {
+      dataQuery = dataQuery.or(`title.ilike.%${textQuery}%,quote_number.eq.${num}`);
+    } else {
+      dataQuery = dataQuery.ilike("title", `%${textQuery}%`);
+    }
+  }
 
   const { data: rawQuotes, error: dataError } = await dataQuery
     .order("created_at", { ascending: false })

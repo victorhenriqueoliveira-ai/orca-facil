@@ -49,6 +49,7 @@ export default function ConfiguracoesPage() {
   const [cancelando, setCancelando] = useState(false);
   const [cancelado, setCancelado] = useState(false);
   const [erroCancelamento, setErroCancelamento] = useState<string | null>(null);
+  const [confirmarCancelamento, setConfirmarCancelamento] = useState(false);
   const [assinatura, setAssinatura] = useState<AssinaturaDetalhes | null>(null);
 
   const [businessName, setBusinessName] = useState("");
@@ -188,14 +189,6 @@ export default function ConfiguracoesPage() {
   }
 
   async function handleCancelarAssinatura() {
-    if (
-      !window.confirm(
-        "Tem certeza que deseja cancelar sua assinatura? Você perderá o acesso completo ao final do período atual."
-      )
-    ) {
-      return;
-    }
-
     setCancelando(true);
     setErroCancelamento(null);
 
@@ -605,14 +598,41 @@ export default function ConfiguracoesPage() {
                 {erroCancelamento}
               </div>
             )}
-            <button
-              type="button"
-              onClick={handleCancelarAssinatura}
-              disabled={cancelando}
-              className="text-sm text-red-600 border border-red-300 rounded-lg px-4 py-2 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {cancelando ? "Cancelando..." : "Cancelar assinatura"}
-            </button>
+
+            {confirmarCancelamento ? (
+              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-4 space-y-3">
+                <p className="text-sm font-medium text-red-800">Tem certeza?</p>
+                <p className="text-sm text-red-700">
+                  Você perderá o acesso completo ao final do período atual.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmarCancelamento(false)}
+                    disabled={cancelando}
+                    className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    Manter assinatura
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelarAssinatura}
+                    disabled={cancelando}
+                    className="flex-1 text-sm bg-red-600 text-white rounded-lg px-3 py-2 hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {cancelando ? "Cancelando..." : "Confirmar cancelamento"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmarCancelamento(true)}
+                className="text-sm text-red-600 border border-red-300 rounded-lg px-4 py-2 hover:bg-red-50 transition-colors"
+              >
+                Cancelar assinatura
+              </button>
+            )}
           </div>
         )}
 

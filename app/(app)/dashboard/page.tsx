@@ -5,6 +5,22 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useSubscription } from "@/components/subscription-provider";
 
+interface DashboardStats {
+  total: number;
+  by_status: {
+    draft: number;
+    sent: number;
+    accepted: number;
+    rejected: number;
+    expired: number;
+  };
+  accepted_total_value: number;
+}
+
+function formatBRL(value: number) {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+}
+
 export default function DashboardPage() {
   const { canWrite } = useSubscription();
   const searchParams = useSearchParams();
@@ -12,12 +28,20 @@ export default function DashboardPage() {
 
   const [confirmando, setConfirmando] = useState(acabouDePagar);
   const [confirmado, setConfirmado] = useState(false);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+
+  useEffect(() => {
+    fetch("/api/dashboard/stats")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setStats(data); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!acabouDePagar) return;
 
     let tentativas = 0;
-    const MAX = 20; // até 60s
+    const MAX = 20;
 
     const poll = setInterval(async () => {
       tentativas++;
@@ -29,7 +53,6 @@ export default function DashboardPage() {
           clearInterval(poll);
           setConfirmado(true);
           setConfirmando(false);
-          // Recarrega para atualizar o contexto de assinatura do layout
           setTimeout(() => window.location.replace("/dashboard"), 2000);
           return;
         }
@@ -49,7 +72,6 @@ export default function DashboardPage() {
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-6 py-12">
       <div className="max-w-md w-full text-center space-y-8">
 
-        {/* Banner pós-pagamento */}
         {confirmado && (
           <div className="bg-green-50 border border-green-200 rounded-2xl px-6 py-5">
             <p className="text-green-800 font-semibold text-lg">Pagamento confirmado!</p>
@@ -106,6 +128,30 @@ export default function DashboardPage() {
             </p>
           )}
         </div>
+
+        {/* Métricas rápidas */}
+        {stats && stats.total > 0 && (
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-bg-base border border-border rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-text-base">{stats.total}</p>
+              <p className="text-xs text-text-base/50 mt-0.5">Total</p>
+            </div>
+            <div className="bg-bg-base border border-border rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-blue-600">{stats.by_status.sent}</p>
+              <p className="text-xs text-text-base/50 mt-0.5">Enviados</p>
+            </div>
+            <div className="bg-bg-base border border-border rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold text-green-600">{stats.by_status.accepted}</p>
+              <p className="text-xs text-text-base/50 mt-0.5">Aprovados</p>
+            </div>
+            {stats.accepted_total_value > 0 && (
+              <div className="col-span-3 bg-green-50 border border-green-200 rounded-xl p-3 text-center">
+                <p className="text-sm text-green-700 font-semibold">{formatBRL(stats.accepted_total_value)}</p>
+                <p className="text-xs text-green-600 mt-0.5">em orçamentos aprovados</p>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-3 pt-4">
           <Link

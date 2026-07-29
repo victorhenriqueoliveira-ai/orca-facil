@@ -47,6 +47,7 @@ export default function ClientesPage() {
 
   async function handleCreate(data: CustomerFormData) {
     setIsSaving(true);
+    setError(null);
     try {
       const res = await fetch("/api/customers", {
         method: "POST",
@@ -59,6 +60,8 @@ export default function ClientesPage() {
       }
       setShowCreate(false);
       fetchCustomers(search);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao criar cliente");
     } finally {
       setIsSaving(false);
     }

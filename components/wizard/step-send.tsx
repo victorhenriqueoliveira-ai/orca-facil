@@ -139,7 +139,7 @@ export function StepSend({ quoteId, versionId, versions = [], customerName, onBa
                   value="summary"
                   checked={mode === "summary"}
                   onChange={() => setMode("summary")}
-                  className="mt-0.5 accent-blue-600"
+                  className="mt-0.5 accent-brand-primary"
                 />
                 <div>
                   <span className="text-sm font-medium text-gray-800">Resumido</span>
@@ -155,7 +155,7 @@ export function StepSend({ quoteId, versionId, versions = [], customerName, onBa
                   value="detailed"
                   checked={mode === "detailed"}
                   onChange={() => setMode("detailed")}
-                  className="mt-0.5 accent-blue-600"
+                  className="mt-0.5 accent-brand-primary"
                 />
                 <div>
                   <span className="text-sm font-medium text-gray-800">Detalhado</span>
@@ -178,14 +178,14 @@ export function StepSend({ quoteId, versionId, versions = [], customerName, onBa
                       type="checkbox"
                       checked={selectedVersionIds.includes(v.id)}
                       onChange={() => toggleVersion(v.id)}
-                      className="accent-blue-600"
+                      className="accent-brand-primary"
                     />
                     <span className="text-sm text-gray-800">{v.name}</span>
                   </label>
                 ))}
               </div>
               {selectedVersionIds.length > 1 && (
-                <p className="text-xs text-blue-600 mt-2">
+                <p className="text-xs text-brand-primary mt-2">
                   PDF comparativo será gerado com tabela de comparação entre versões.
                 </p>
               )}
@@ -198,7 +198,7 @@ export function StepSend({ quoteId, versionId, versions = [], customerName, onBa
       {state === "generating" && (
         <div className="flex flex-col items-center justify-center gap-4 py-10">
           <div
-            className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"
+            className="w-10 h-10 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin"
             role="status"
             aria-label="Carregando"
           />
@@ -260,7 +260,7 @@ export function StepSend({ quoteId, versionId, versions = [], customerName, onBa
             href={signedUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-center text-sm text-blue-600 underline hover:text-blue-800 transition-colors"
+            className="text-center text-sm text-brand-primary underline hover:text-brand-primary/80 transition-colors"
           >
             Ou abrir/baixar o PDF diretamente
           </a>
@@ -282,7 +282,7 @@ export function StepSend({ quoteId, versionId, versions = [], customerName, onBa
           type="button"
           onClick={handleGeneratePdf}
           disabled={selectedVersionIds.length === 0}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-4 text-base font-semibold transition-colors shadow-sm disabled:opacity-50"
+          className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl px-4 py-4 text-base font-semibold transition-colors shadow-sm disabled:opacity-50"
         >
           Gerar PDF
         </button>
