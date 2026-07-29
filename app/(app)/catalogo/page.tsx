@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import type { CatalogItem } from "@/components/catalog-item-form";
 import { CatalogItemForm } from "@/components/catalog-item-form";
 import { diasDesdeAtualizacao, precoDesatualizado } from "@/lib/catalog/price-alert";
+import {
+  CatalogRegionalOnboarding,
+  shouldShowCatalogOnboarding,
+} from "@/components/catalog-regional-onboarding";
 
 type Tab = "material" | "service";
 
@@ -23,6 +27,7 @@ export default function CatalogoPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<CatalogItem | null>(null);
   const [priceAlertDays, setPriceAlertDays] = useState<number>(PRICE_ALERT_DAYS_DEFAULT);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -56,6 +61,15 @@ export default function CatalogoPage() {
   useEffect(() => {
     fetchItems();
   }, [fetchItems]);
+
+  // Exibe onboarding após carregar itens se o catálogo estiver vazio e o usuário não tiver pulado
+  useEffect(() => {
+    if (!loading && items.length === 0 && shouldShowCatalogOnboarding()) {
+      setShowOnboarding(true);
+    } else {
+      setShowOnboarding(false);
+    }
+  }, [loading, items.length]);
 
   async function handleToggleActive(item: CatalogItem) {
     try {
@@ -98,6 +112,11 @@ export default function CatalogoPage() {
     setEditingItem(null);
   }
 
+  function handleOnboardingDismiss() {
+    setShowOnboarding(false);
+    fetchItems();
+  }
+
   const tabItems = items.filter((i) => i.type === activeTab);
   const activeItems = tabItems.filter((i) => i.is_active);
   const inactiveItems = tabItems.filter((i) => !i.is_active);
@@ -114,6 +133,11 @@ export default function CatalogoPage() {
           + Adicionar
         </button>
       </div>
+
+      {/* Onboarding de catálogo regional — exibido quando o catálogo está vazio */}
+      {showOnboarding && !loading && (
+        <CatalogRegionalOnboarding onDismiss={handleOnboardingDismiss} />
+      )}
 
       {/* Abas */}
       <div className="mb-4 flex rounded-lg border border-border bg-bg-base p-1">
