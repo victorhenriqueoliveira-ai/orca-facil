@@ -104,6 +104,11 @@ export async function PATCH(
     }
   }
 
+  // Ao alterar unit_price, atualiza price_updated_at automaticamente
+  if ("unit_price" in updates) {
+    sanitized["price_updated_at"] = new Date().toISOString();
+  }
+
   if (Object.keys(sanitized).length === 0) {
     return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
   }

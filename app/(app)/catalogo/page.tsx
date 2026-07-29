@@ -4,8 +4,11 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { CatalogItem } from "@/components/catalog-item-form";
 import { CatalogItemForm } from "@/components/catalog-item-form";
+import { diasDesdeAtualizacao, precoDesatualizado } from "@/lib/catalog/price-alert";
 
 type Tab = "material" | "service";
+
+const PRICE_ALERT_DAYS_DEFAULT = 60;
 
 function formatPrice(price: number) {
   return price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -19,6 +22,7 @@ export default function CatalogoPage() {
   const [activeTab, setActiveTab] = useState<Tab>("material");
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<CatalogItem | null>(null);
+  const [priceAlertDays, setPriceAlertDays] = useState<number>(PRICE_ALERT_DAYS_DEFAULT);
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -33,6 +37,20 @@ export default function CatalogoPage() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  // Busca price_alert_days do perfil do usuário
+  useEffect(() => {
+    fetch("/api/profile")
+      .then((r) => r.json())
+      .then((data) => {
+        if (typeof data?.price_alert_days === "number") {
+          setPriceAlertDays(data.price_alert_days);
+        }
+      })
+      .catch(() => {
+        // mantém o default se falhar
+      });
   }, []);
 
   useEffect(() => {
@@ -155,6 +173,7 @@ export default function CatalogoPage() {
                     item={item}
                     onEdit={openEdit}
                     onToggle={handleToggleActive}
+                    priceAlertDays={priceAlertDays}
                   />
                 ))}
               </ul>
@@ -174,6 +193,7 @@ export default function CatalogoPage() {
                     item={item}
                     onEdit={openEdit}
                     onToggle={handleToggleActive}
+                    priceAlertDays={priceAlertDays}
                   />
                 ))}
               </ul>
@@ -197,7 +217,7 @@ export default function CatalogoPage() {
               </button>
             </div>
             <CatalogItemForm
-              item={null}
+              item={editingItem}
               onClose={closeForm}
               onSuccess={handleFormSuccess}
             />
@@ -212,41 +232,68 @@ interface CatalogItemRowProps {
   item: CatalogItem;
   onEdit: (item: CatalogItem) => void;
   onToggle: (item: CatalogItem) => void;
+  priceAlertDays: number;
 }
 
-function CatalogItemRow({ item, onEdit, onToggle }: CatalogItemRowProps) {
+function CatalogItemRow({ item, onEdit, onToggle, priceAlertDays }: CatalogItemRowProps) {
+  const dias = diasDesdeAtualizacao(item.price_updated_at);
+  const desatualizado = precoDesatualizado(item.price_updated_at, priceAlertDays);
+
   return (
-    <li className="flex items-center justify-between rounded-lg border border-border bg-bg-base px-4 py-3">
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-text-base">{item.name}</p>
-        <p className="text-xs text-text-base/50">
-          {item.unit} · {formatPrice(item.unit_price)}
-        </p>
-      </div>
-      <div className="ml-3 flex items-center gap-2">
-        <button
-          onClick={() => onEdit(item)}
-          className="rounded px-2 py-1 text-xs text-text-base/50 hover:bg-border/30"
-          aria-label={`Editar ${item.name}`}
-        >
-          Editar
-        </button>
-        {/* Toggle de inativação */}
-        <button
-          onClick={() => onToggle(item)}
-          aria-label={item.is_active ? `Inativar ${item.name}` : `Ativar ${item.name}`}
-          aria-pressed={item.is_active}
-          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-            item.is_active ? "bg-brand-primary" : "bg-border"
-          }`}
-        >
-          <span
-            className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
-              item.is_active ? "translate-x-4" : "translate-x-0"
+    <li className="rounded-lg border border-border bg-bg-base overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-text-base">{item.name}</p>
+          <p className="text-xs text-text-base/50">
+            {item.unit} · {formatPrice(item.unit_price)}
+          </p>
+        </div>
+        <div className="ml-3 flex items-center gap-2">
+          {desatualizado && (
+            <span
+              className="text-amber-600 text-base leading-none"
+              title={`Preço atualizado há ${dias} dias — confira se está correto`}
+              aria-label="Preço desatualizado"
+            >
+              ⚠️
+            </span>
+          )}
+          <button
+            onClick={() => onEdit(item)}
+            className="rounded px-2 py-1 text-xs text-text-base/50 hover:bg-border/30"
+            aria-label={`Editar ${item.name}`}
+          >
+            Editar
+          </button>
+          {/* Toggle de inativação */}
+          <button
+            onClick={() => onToggle(item)}
+            aria-label={item.is_active ? `Inativar ${item.name}` : `Ativar ${item.name}`}
+            aria-pressed={item.is_active}
+            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+              item.is_active ? "bg-brand-primary" : "bg-border"
             }`}
-          />
-        </button>
+          >
+            <span
+              className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                item.is_active ? "translate-x-4" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </div>
       </div>
+      {/* Alerta de preço desatualizado */}
+      {desatualizado && (
+        <div
+          className="border-t border-amber-200 bg-amber-50 px-4 py-2"
+          role="alert"
+          aria-live="polite"
+        >
+          <p className="text-xs text-amber-600">
+            Preço atualizado há {dias} dias — confira se está correto
+          </p>
+        </div>
+      )}
     </li>
   );
 }
