@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useSubscription } from "@/components/subscription-provider";
+import type { ConversionMetrics } from "@/app/api/metrics/conversion/route";
 
 interface DashboardStats {
   total: number;
@@ -21,6 +22,16 @@ function formatBRL(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 }
 
+function getMesAtualInicio(): string {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+}
+
+function getMesAtualFim(): string {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
+}
+
 export default function DashboardPage() {
   const { canWrite } = useSubscription();
   const searchParams = useSearchParams();
@@ -29,6 +40,10 @@ export default function DashboardPage() {
   const [confirmando, setConfirmando] = useState(acabouDePagar);
   const [confirmado, setConfirmado] = useState(false);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [periodStart, setPeriodStart] = useState(getMesAtualInicio);
+  const [periodEnd, setPeriodEnd] = useState(getMesAtualFim);
+  const [conversion, setConversion] = useState<ConversionMetrics | null>(null);
+  const [loadingConversion, setLoadingConversion] = useState(false);
 
   useEffect(() => {
     fetch("/api/dashboard/stats")
@@ -36,6 +51,30 @@ export default function DashboardPage() {
       .then((data) => { if (data) setStats(data); })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchConversion() {
+      setLoadingConversion(true);
+      try {
+        const r = await fetch(
+          `/api/metrics/conversion?period_start=${periodStart}&period_end=${periodEnd}`
+        );
+        if (!cancelled && r.ok) {
+          const data = await r.json();
+          setConversion(data);
+        }
+      } catch {
+        // ignora erros de rede
+      } finally {
+        if (!cancelled) setLoadingConversion(false);
+      }
+    }
+
+    fetchConversion();
+    return () => { cancelled = true; };
+  }, [periodStart, periodEnd]);
 
   useEffect(() => {
     if (!acabouDePagar) return;
@@ -168,6 +207,67 @@ export default function DashboardPage() {
             <span className="text-2xl">👥</span>
             <span className="text-sm font-medium text-text-base">Clientes</span>
           </Link>
+        </div>
+
+        {/* Performance do período */}
+        <div className="border border-border rounded-2xl p-5 space-y-4 text-left">
+          <h2 className="text-base font-semibold text-text-base">Performance do período</h2>
+
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <label className="block text-xs text-text-base/50 mb-1">De</label>
+              <input
+                type="date"
+                value={periodStart}
+                onChange={(e) => setPeriodStart(e.target.value)}
+                className="w-full border border-border rounded-lg px-3 py-2 text-sm text-text-base bg-bg-base focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs text-text-base/50 mb-1">Até</label>
+              <input
+                type="date"
+                value={periodEnd}
+                onChange={(e) => setPeriodEnd(e.target.value)}
+                className="w-full border border-border rounded-lg px-3 py-2 text-sm text-text-base bg-bg-base focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
+              />
+            </div>
+          </div>
+
+          {loadingConversion ? (
+            <div className="text-center text-text-base/40 text-sm py-4">Carregando...</div>
+          ) : conversion ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-bg-base border border-border rounded-xl p-3 text-center">
+                <p className="text-xl font-bold text-blue-600">
+                  {conversion.sent}
+                </p>
+                <p className="text-xs text-text-base/50 mt-0.5">Enviados</p>
+              </div>
+              <div className="bg-bg-base border border-border rounded-xl p-3 text-center">
+                <p className="text-xl font-bold text-green-600">
+                  {conversion.approved}
+                </p>
+                <p className="text-xs text-text-base/50 mt-0.5">Aprovados</p>
+              </div>
+              <div className="bg-bg-base border border-border rounded-xl p-3 text-center">
+                <p className="text-xl font-bold text-brand-primary">
+                  {conversion.conversion_rate.toFixed(1)}%
+                </p>
+                <p className="text-xs text-text-base/50 mt-0.5">Taxa de conversão</p>
+              </div>
+              <div className="bg-bg-base border border-border rounded-xl p-3 text-center">
+                <p className="text-xl font-bold text-text-base">
+                  {formatBRL(conversion.avg_ticket)}
+                </p>
+                <p className="text-xs text-text-base/50 mt-0.5">Ticket médio</p>
+              </div>
+              <div className="col-span-2 bg-green-50 border border-green-200 rounded-xl p-3 text-center">
+                <p className="text-sm text-green-700 font-semibold">{formatBRL(conversion.total_approved)}</p>
+                <p className="text-xs text-green-600 mt-0.5">Total aprovado no período</p>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
