@@ -23,6 +23,8 @@ export interface PdfRoom {
   id: string;
   name: string;
   items: PdfItem[];
+  /** URLs assinadas de fotos de referência do ambiente (max 3) */
+  photos?: string[];
 }
 
 export interface PdfVersion {
@@ -337,6 +339,29 @@ const STYLES = `
   .comparison-table tr.total-row td.amount {
     text-align: right;
   }
+  .room-photos {
+    display: flex;
+    gap: 8px;
+    padding: 10px 14px;
+    border-top: 1px solid #f3f4f6;
+  }
+  .room-photos img {
+    max-width: 100%;
+    width: 120px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #e5e7eb;
+  }
+  .room-photos-title {
+    font-size: 11px;
+    font-weight: bold;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 8px 14px 0;
+    border-top: 1px solid #f3f4f6;
+  }
 `;
 
 // ----------------------------------------------------------------
@@ -460,6 +485,22 @@ function renderRoomDetailed(room: PdfRoom, marginPct: number): string {
           )
           .join("");
 
+  // Seção de fotos de referência — somente no modo detalhado e quando há fotos
+  const photosHtml = (room.photos && room.photos.length > 0)
+    ? `
+      <div class="room-photos-title">Fotos de referência</div>
+      <div class="room-photos">
+        ${room.photos
+          .slice(0, 3)
+          .map(
+            (url) =>
+              `<img src="${url}" alt="Foto de referência" />`
+          )
+          .join("")}
+      </div>
+    `
+    : "";
+
   return `
     <div class="room-card">
       <div class="room-header">
@@ -478,6 +519,7 @@ function renderRoomDetailed(room: PdfRoom, marginPct: number): string {
         </thead>
         <tbody>${itemsHtml}</tbody>
       </table>
+      ${photosHtml}
     </div>
   `;
 }

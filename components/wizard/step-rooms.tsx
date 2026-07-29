@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { RoomItemForm, type RoomItemFormData } from "@/components/wizard/room-item-form";
+import { RoomPhotoUpload } from "@/components/wizard/room-photo-upload";
 
 /** Área padrão de uma chapa de MDF 2750mm × 1830mm em m² */
 export const AREA_CHAPA_M2 = 2.750 * 1.830; // 5.0325 m²
@@ -452,6 +453,9 @@ export function StepRooms({
                 </div>
               );
             })()}
+
+            {/* Upload de fotos — exibido apenas quando o ambiente já possui um ID real */}
+            <RoomPhotoUpload roomId={room.id} />
 
             {addingItemToRoomId === room.id ? (
               <div className="border-t border-gray-100">
