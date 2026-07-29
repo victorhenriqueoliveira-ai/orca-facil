@@ -21,7 +21,7 @@ export async function GET() {
   const { data: profile, error } = await supabase
     .from("profiles")
     .select(
-      "id, business_name, city, phone, pix_key, bank_info, logo_url, profit_margin_pct, quote_validity_days, updated_at"
+      "id, business_name, city, phone, pix_key, bank_info, logo_url, profit_margin_pct, quote_validity_days, whatsapp_message_template, updated_at"
     )
     .eq("id", user.id)
     .single();
@@ -93,6 +93,7 @@ export async function PATCH(request: NextRequest) {
     "quote_validity_days",
     "profit_margin_pct",
     "logo_url",
+    "whatsapp_message_template",
   ] as const;
 
   const updates: Record<string, unknown> = {};
