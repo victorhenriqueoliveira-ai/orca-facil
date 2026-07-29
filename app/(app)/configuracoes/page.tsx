@@ -30,6 +30,10 @@ interface Perfil {
   logo_url: string | null;
   profit_margin_pct: number | null;
   quote_validity_days: number | null;
+  followup_days: number | null;
+  price_alert_days: number | null;
+  sheet_waste_pct: number | null;
+  whatsapp_message_template: string | null;
 }
 
 export default function ConfiguracoesPage() {
@@ -59,6 +63,10 @@ export default function ConfiguracoesPage() {
   const [bankInfo, setBankInfo] = useState("");
   const [profitMarginPct, setProfitMarginPct] = useState("30");
   const [quoteValidityDays, setQuoteValidityDays] = useState("15");
+  const [followupDays, setFollowupDays] = useState("5");
+  const [priceAlertDays, setPriceAlertDays] = useState("60");
+  const [sheetWastePct, setSheetWastePct] = useState("15");
+  const [whatsappMessageTemplate, setWhatsappMessageTemplate] = useState("");
 
   const inputFileRef = useRef<HTMLInputElement>(null);
 
@@ -99,6 +107,10 @@ export default function ConfiguracoesPage() {
         setBankInfo(p.bank_info ?? "");
         setProfitMarginPct(String(p.profit_margin_pct ?? 30));
         setQuoteValidityDays(String(p.quote_validity_days ?? 15));
+        setFollowupDays(String(p.followup_days ?? 5));
+        setPriceAlertDays(String(p.price_alert_days ?? 60));
+        setSheetWastePct(String(p.sheet_waste_pct ?? 15));
+        setWhatsappMessageTemplate(p.whatsapp_message_template ?? "");
       }
 
       if (dados.logoSignedUrl) {
@@ -128,6 +140,10 @@ export default function ConfiguracoesPage() {
           bank_info: bankInfo || null,
           profit_margin_pct: Number(profitMarginPct),
           quote_validity_days: Number(quoteValidityDays),
+          followup_days: Number(followupDays),
+          price_alert_days: Number(priceAlertDays),
+          sheet_waste_pct: Number(sheetWastePct),
+          whatsapp_message_template: whatsappMessageTemplate || null,
         }),
       });
 
@@ -463,6 +479,99 @@ export default function ConfiguracoesPage() {
                 onChange={(e) => setQuoteValidityDays(e.target.value)}
                 className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
               />
+            </div>
+          </div>
+        </section>
+
+        {/* Seção: Notificações e Automação */}
+        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+          <h2 className="text-lg font-semibold text-gray-800">
+            Notificações e Automação
+          </h2>
+          <p className="text-sm text-gray-500">
+            Configure prazos e mensagens para follow-up automático.
+          </p>
+
+          <div className="space-y-4">
+            <div>
+              <label
+                htmlFor="followup_days"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Dias para follow-up automático
+              </label>
+              <input
+                id="followup_days"
+                type="number"
+                min="1"
+                max="30"
+                step="1"
+                value={followupDays}
+                onChange={(e) => setFollowupDays(e.target.value)}
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-400 mt-1">Entre 1 e 30 dias</p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="price_alert_days"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Alertar preços não atualizados há (dias)
+              </label>
+              <input
+                id="price_alert_days"
+                type="number"
+                min="7"
+                max="365"
+                step="1"
+                value={priceAlertDays}
+                onChange={(e) => setPriceAlertDays(e.target.value)}
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-400 mt-1">Entre 7 e 365 dias</p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="sheet_waste_pct"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Perda de chapa (%)
+              </label>
+              <input
+                id="sheet_waste_pct"
+                type="number"
+                min="0"
+                max="50"
+                step="0.01"
+                value={sheetWastePct}
+                onChange={(e) => setSheetWastePct(e.target.value)}
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-400 mt-1">Entre 0 e 50%</p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="whatsapp_message_template"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Modelo de mensagem WhatsApp
+              </label>
+              <textarea
+                id="whatsapp_message_template"
+                value={whatsappMessageTemplate}
+                onChange={(e) => setWhatsappMessageTemplate(e.target.value)}
+                placeholder="Ex: Olá {nome}, seu orçamento está disponível..."
+                rows={4}
+                maxLength={1000}
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent resize-none"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                {whatsappMessageTemplate.length}/1000 caracteres
+              </p>
             </div>
           </div>
         </section>
