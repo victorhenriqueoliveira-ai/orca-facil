@@ -88,8 +88,11 @@ export function StepSend({
 
   // Template bruto (com variáveis) — usado para salvar no perfil
   const [rawTemplate, setRawTemplate] = useState<string>(DEFAULT_WHATSAPP_TEMPLATE);
-  // Mensagem editada (interpolada) — usada para o link do WhatsApp
+  // Mensagem interpolada com link de aprovação — botão "Link aprovação"
   const [editedMessage, setEditedMessage] = useState<string>("");
+  // Nome e número resolvidos após gerar o PDF
+  const [resolvedName, setResolvedName] = useState<string | undefined>(customerName);
+  const [resolvedNumber, setResolvedNumber] = useState<number | undefined>(quoteNumber);
   // Estado do salvamento do modelo
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   // Se o template foi carregado do perfil
@@ -178,16 +181,20 @@ export function StepSend({
       };
       setSignedUrl(data.signed_url);
 
-      // Atualiza a mensagem do WhatsApp com o link real de aprovação
+      const name = data.customer_name ?? customerName;
+      const number = data.quote_number ?? quoteNumber;
+      setResolvedName(name);
+      setResolvedNumber(number);
+
+      // Monta mensagem com link de aprovação (botão "Link aprovação")
       if (data.approval_link) {
         setLiveApprovalLink(data.approval_link);
         const hasPlaceholder = rawTemplate.includes("{{link_aprovacao}}");
         const interpolated = interpolateTemplate(rawTemplate, {
-          nome_cliente: data.customer_name ?? customerName,
-          numero_orcamento: data.quote_number ?? quoteNumber,
+          nome_cliente: name,
+          numero_orcamento: number,
           link_aprovacao: data.approval_link,
         });
-        // Se o template não tinha o placeholder, adiciona o link no final
         const finalMessage = hasPlaceholder
           ? interpolated
           : `${interpolated}\n\nLink para aprovação:\n${data.approval_link}`;
@@ -201,9 +208,16 @@ export function StepSend({
     }
   }
 
-  function handleWhatsApp() {
-    const waUrl = `https://wa.me/?text=${encodeURIComponent(editedMessage)}`;
-    window.open(waUrl, "_blank");
+  function handleSendPdf() {
+    if (!signedUrl) return;
+    const greeting = resolvedName ? `Olá, ${resolvedName}! ` : "Olá! ";
+    const num = resolvedNumber ? `do orçamento #${resolvedNumber} ` : "";
+    const msg = `${greeting}Segue o PDF ${num}para visualização:\n${signedUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+  }
+
+  function handleSendApproval() {
+    window.open(`https://wa.me/?text=${encodeURIComponent(editedMessage)}`, "_blank");
   }
 
   async function handleSaveTemplate() {
@@ -403,10 +417,10 @@ export function StepSend({
           </div>
 
           {/* WhatsApp buttons */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className={`grid gap-3 ${liveApprovalLink ? "grid-cols-2" : "grid-cols-1"}`}>
             <button
               type="button"
-              onClick={handleWhatsApp}
+              onClick={handleSendPdf}
               className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white rounded-xl px-3 py-4 text-sm font-semibold transition-colors shadow-sm"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -418,10 +432,7 @@ export function StepSend({
             {liveApprovalLink && (
               <button
                 type="button"
-                onClick={() => {
-                  const msg = `Olá${customerName ? `, ${customerName}` : ""}! Segue o link para aprovar seu orçamento:\n${liveApprovalLink}`;
-                  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
-                }}
+                onClick={handleSendApproval}
                 className="flex items-center justify-center gap-2 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl px-3 py-4 text-sm font-semibold transition-colors shadow-sm"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
