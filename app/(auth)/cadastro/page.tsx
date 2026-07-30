@@ -16,6 +16,7 @@ export default function PaginaCadastro() {
   const [erroSenha, setErroSenha] = useState<string | null>(null);
   const [erroConfirmacao, setErroConfirmacao] = useState<string | null>(null);
   const [erroCpfCnpj, setErroCpfCnpj] = useState<string | null>(null);
+  const [aceitouTermos, setAceitouTermos] = useState(false);
 
   function validarSenha(value: string): string | null {
     if (value.length > 0 && value.length < 8) {
@@ -197,6 +198,25 @@ export default function PaginaCadastro() {
               </div>
             )}
 
+            <label className="flex items-start gap-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={aceitouTermos}
+                onChange={(e) => setAceitouTermos(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-brand-primary flex-shrink-0"
+              />
+              <span className="text-sm text-text-base/70 leading-snug">
+                Li e aceito os{" "}
+                <a href="/termos" target="_blank" className="text-brand-primary underline hover:text-brand-primary/80">
+                  Termos de Uso
+                </a>{" "}
+                e a{" "}
+                <a href="/privacidade" target="_blank" className="text-brand-primary underline hover:text-brand-primary/80">
+                  Política de Privacidade
+                </a>
+              </span>
+            </label>
+
             <Button
               type="submit"
               variant="primary"
@@ -207,7 +227,8 @@ export default function PaginaCadastro() {
                 !email.trim() ||
                 !cpfCnpj ||
                 !senha ||
-                !confirmaSenha
+                !confirmaSenha ||
+                !aceitouTermos
               }
               className="w-full"
             >
