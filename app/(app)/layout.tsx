@@ -30,9 +30,9 @@ export default async function AppLayout({
 
   return (
     <SubscriptionProvider subscription={subscription}>
-      <div className="flex min-h-screen bg-bg-base">
+      <div className="flex h-screen overflow-hidden bg-bg-base">
         <Sidebar className="hidden lg:flex w-64 shrink-0" />
-        <div className="flex flex-col flex-1 min-w-0">
+        <div className="flex flex-col flex-1 min-w-0 overflow-y-auto">
           {subscription.status === "trial" && subscription.daysLeft !== null && (
             <TrialBanner daysLeft={subscription.daysLeft} />
           )}
