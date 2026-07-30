@@ -225,7 +225,6 @@ export function RoomPhotoUpload({ roomId, onPhotosChange }: RoomPhotoUploadProps
                 ref={inputRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
                 className="sr-only"
                 onChange={handleFileChange}
                 disabled={uploading}
