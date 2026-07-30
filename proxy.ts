@@ -11,6 +11,7 @@ const ROTAS_PUBLICAS = [
   "/auth/verify",
   "/api/auth/callback",
   "/api/auth/logout",
+  "/api/auth/signup",
   "/o",
   "/termos",
   "/privacidade",
