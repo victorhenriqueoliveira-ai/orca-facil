@@ -192,28 +192,28 @@ export default function QuoteDetailClient({
     setIsSendingToClient(true);
     setStatusMsg(null);
     try {
-      let url = pdfUrl;
-      if (!url) {
-        const res = await fetch(`/api/quotes/${quoteId}/pdf`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mode: "detailed", version_ids: [] }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Erro ao gerar PDF");
-        url = data.signed_url;
-        setPdfUrl(url);
-        setQuote((prev) => ({ ...prev, status: "sent" }));
-      }
+      const res = await fetch(`/api/quotes/${quoteId}/pdf`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "detailed", version_ids: [] }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Erro ao gerar PDF");
+      setPdfUrl(data.signed_url);
+      setQuote((prev) => ({ ...prev, status: "sent" }));
+
+      const approvalLink: string = data.approval_link ?? data.signed_url;
+
       if (quote.customer?.phone) {
         const phone = quote.customer.phone.replace(/\D/g, "");
+        const customerName = quote.customer.name ?? "cliente";
         const msg = encodeURIComponent(
-          `Olá ${quote.customer.name}, segue seu orçamento #${quote.quote_number}${quote.title ? ` — ${quote.title}` : ""}:\n${url}`
+          `Olá ${customerName}! Segue o orçamento #${quote.quote_number} da sua solicitação.\n\nPara visualizar e aprovar com um clique, acesse:\n${approvalLink}\n\nQualquer dúvida, estou à disposição.`
         );
         window.open(`https://wa.me/55${phone}?text=${msg}`, "_blank");
-      } else if (url) {
-        await navigator.clipboard.writeText(url).catch(() => {});
-        setStatusMsg("Link do orçamento copiado!");
+      } else {
+        await navigator.clipboard.writeText(approvalLink).catch(() => {});
+        setStatusMsg("Link de aprovação copiado!");
       }
     } catch (e) {
       setStatusMsg(e instanceof Error ? e.message : "Erro ao enviar");
