@@ -102,20 +102,55 @@ export default function CatalogoItemPage({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const ALLOWED_TYPES: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+    };
+    const MAX_SIZE = 20 * 1024 * 1024; // 20 MB — upload direto para o Supabase
+
+    if (!ALLOWED_TYPES[file.type]) {
+      setError("Tipo inválido. Use JPEG, PNG ou WebP.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      setError("Imagem muito grande. Máximo: 20 MB.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     setIsUploadingImage(true);
     setError(null);
     try {
-      const form = new FormData();
-      form.append("image", file);
-      const res = await fetch(`/api/catalog/${itemId}/image`, { method: "POST", body: form });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(
-          (err as { error?: string }).error ??
-            (res.status === 413 ? "Imagem muito grande. Máximo: 4 MB" : "Erro ao enviar imagem")
-        );
+      // 1. Obtém URL de upload assinada (arquivo não passa pela Vercel)
+      const ext = ALLOWED_TYPES[file.type];
+      const signRes = await fetch(`/api/catalog/${itemId}/image/sign?ext=${ext}`);
+      if (!signRes.ok) {
+        const err = await signRes.json().catch(() => ({}));
+        throw new Error((err as { error?: string }).error ?? "Erro ao iniciar upload");
       }
-      const data = await res.json();
+      const { signed_url, path } = await signRes.json() as { signed_url: string; path: string };
+
+      // 2. Upload direto para o Supabase Storage (sem passar pela Vercel)
+      const uploadRes = await fetch(signed_url, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+      if (!uploadRes.ok) throw new Error("Falha no upload da imagem. Tente novamente.");
+
+      // 3. Confirma o path e atualiza o banco
+      const confirmRes = await fetch(`/api/catalog/${itemId}/image/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path }),
+      });
+      if (!confirmRes.ok) {
+        const err = await confirmRes.json().catch(() => ({}));
+        throw new Error((err as { error?: string }).error ?? "Erro ao confirmar imagem");
+      }
+      const data = await confirmRes.json() as { image_url: string; imageSignedUrl: string | null };
       setItem((prev) => prev ? { ...prev, image_url: data.image_url, imageSignedUrl: data.imageSignedUrl } : prev);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao enviar imagem");
@@ -260,7 +295,7 @@ export default function CatalogoItemPage({
             ) : (
               <>
                 <p className="text-sm font-medium text-text-base mb-1">Adicionar foto</p>
-                <p className="text-xs text-text-base/40">JPEG, PNG ou WebP — máx. 5MB</p>
+                <p className="text-xs text-text-base/40">JPEG, PNG ou WebP — máx. 20 MB</p>
               </>
             )}
           </button>
