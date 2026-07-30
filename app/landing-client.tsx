@@ -54,8 +54,8 @@ function Counter({ to, suffix, label }: { to: number; suffix: string; label: str
   }, [to]);
   return (
     <div ref={ref} className="text-center">
-      <div className="text-4xl font-extrabold text-[#C2703A]">{count}{suffix}</div>
-      <div className="text-sm text-white/60 mt-1">{label}</div>
+      <div className="text-2xl sm:text-4xl font-extrabold text-[#C2703A]">{count}{suffix}</div>
+      <div className="text-xs sm:text-sm text-white/60 mt-1 leading-snug">{label}</div>
     </div>
   );
 }
@@ -280,7 +280,7 @@ export function LandingClient() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link href="/">
-              <img src="/orca_facil.png" alt="Orça Fácil" className="h-[100px] w-auto" />
+              <img src="/orca_facil.png" alt="Orça Fácil" className="h-10 sm:h-12 w-auto" />
             </Link>
             <nav className="flex items-center gap-3">
               <Link href="/login" className="text-sm font-medium text-[#2B2621]/70 hover:text-[#2D5D5A] transition-colors">
@@ -340,11 +340,11 @@ export function LandingClient() {
         </section>
 
         {/* ── Stats ── */}
-        <section className="bg-[#2D5D5A] py-12 px-4">
-          <div className="mx-auto max-w-4xl grid grid-cols-3 gap-6 sm:gap-12">
-            <Counter to={30} suffix=" dias" label="de trial gratuito" />
+        <section className="bg-[#2D5D5A] py-10 sm:py-12 px-4">
+          <div className="mx-auto max-w-4xl grid grid-cols-3 gap-4 sm:gap-12">
+            <Counter to={30} suffix=" dias" label="trial gratuito" />
             <Counter to={5} suffix=" min" label="do zero ao PDF" />
-            <Counter to={100} suffix="%" label="funciona no celular" />
+            <Counter to={100} suffix="%" label="no celular" />
           </div>
         </section>
 
@@ -422,7 +422,7 @@ export function LandingClient() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {FEATURES.map((f, i) => (
-                <Reveal key={i} delay={i * 80}>
+                <Reveal key={i} delay={i * 80} className="h-full">
                   <div className="group bg-white rounded-2xl p-6 border border-[#E5DDD3] hover:border-[#C2703A]/40 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full">
                     <div className="text-3xl mb-3">{f.icon}</div>
                     <h3 className="text-base font-bold text-[#2D5D5A] mb-2">{f.title}</h3>
