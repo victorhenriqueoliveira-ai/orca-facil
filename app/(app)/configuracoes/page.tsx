@@ -60,6 +60,7 @@ export default function ConfiguracoesPage() {
 
   const [businessName, setBusinessName] = useState("");
   const [city, setCity] = useState("");
+  const [cpfCnpj, setCpfCnpj] = useState("");
   const [phone, setPhone] = useState("");
   const [pixKey, setPixKey] = useState("");
   const [bankInfo, setBankInfo] = useState("");
@@ -105,6 +106,7 @@ export default function ConfiguracoesPage() {
         setPerfil(p);
         setBusinessName(p.business_name ?? "");
         setCity(p.city ?? "");
+        setCpfCnpj(p.cpf_cnpj ?? "");
         setPhone(p.phone ?? "");
         setPixKey(p.pix_key ?? "");
         setBankInfo(p.bank_info ?? "");
@@ -139,6 +141,7 @@ export default function ConfiguracoesPage() {
         body: JSON.stringify({
           business_name: businessName || null,
           city: city || null,
+          cpf_cnpj: cpfCnpj || null,
           phone: phone || null,
           pix_key: pixKey || null,
           bank_info: bankInfo || null,
@@ -395,6 +398,26 @@ export default function ConfiguracoesPage() {
                 className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
               />
             </div>
+
+            <div>
+              <label
+                htmlFor="cpf_cnpj"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                CPF / CNPJ
+              </label>
+              <input
+                id="cpf_cnpj"
+                type="text"
+                value={cpfCnpj}
+                onChange={(e) => setCpfCnpj(e.target.value)}
+                placeholder="Ex: 00.000.000/0001-00"
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Usado para exibir no orçamento e garantir conta única.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -502,13 +525,13 @@ export default function ConfiguracoesPage() {
               <p className="text-sm font-medium text-gray-700">
                 Exibir CNPJ/CPF no orçamento
               </p>
-              {perfil?.cpf_cnpj ? (
+              {cpfCnpj ? (
                 <p className="text-xs text-gray-400 mt-0.5">
-                  {perfil.cpf_cnpj}
+                  {cpfCnpj}
                 </p>
               ) : (
                 <p className="text-xs text-amber-600 mt-0.5">
-                  Nenhum CNPJ/CPF cadastrado ainda.
+                  Preencha o CPF/CNPJ acima para habilitar.
                 </p>
               )}
             </div>
@@ -517,7 +540,7 @@ export default function ConfiguracoesPage() {
               role="switch"
               aria-checked={showCnpjOnPdf}
               onClick={() => setShowCnpjOnPdf((v) => !v)}
-              disabled={!perfil?.cpf_cnpj}
+              disabled={!cpfCnpj}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary/50 disabled:opacity-40 disabled:cursor-not-allowed ${
                 showCnpjOnPdf ? "bg-brand-primary" : "bg-gray-200"
               }`}
