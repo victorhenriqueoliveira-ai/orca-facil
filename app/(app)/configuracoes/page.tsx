@@ -626,23 +626,34 @@ export default function ConfiguracoesPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="whatsapp_message_template"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Modelo de mensagem WhatsApp
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label
+                  htmlFor="whatsapp_message_template"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Modelo de mensagem WhatsApp
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setWhatsappMessageTemplate(`Olá, {{nome_cliente}}! Segue o orçamento #{{numero_orcamento}} da sua solicitação.\n\nPara visualizar e aprovar com um clique, acesse:\n{{link_aprovacao}}\n\nQualquer dúvida, estou à disposição.`)}
+                  className="text-xs text-brand-primary underline hover:text-brand-primary/80"
+                >
+                  Restaurar padrão
+                </button>
+              </div>
               <textarea
                 id="whatsapp_message_template"
                 value={whatsappMessageTemplate}
                 onChange={(e) => setWhatsappMessageTemplate(e.target.value)}
-                placeholder="Ex: Olá {nome}, seu orçamento está disponível..."
-                rows={4}
+                placeholder={`Olá, {{nome_cliente}}! Segue o orçamento #{{numero_orcamento}} da sua solicitação.\n\nPara visualizar e aprovar com um clique, acesse:\n{{link_aprovacao}}\n\nQualquer dúvida, estou à disposição.`}
+                rows={6}
                 maxLength={1000}
                 className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent resize-none"
               />
               <p className="text-xs text-gray-400 mt-1">
-                {whatsappMessageTemplate.length}/1000 caracteres
+                Variáveis: <code className="bg-gray-100 px-1 rounded">{"{{nome_cliente}}"}</code>{" "}
+                <code className="bg-gray-100 px-1 rounded">{"{{numero_orcamento}}"}</code>{" "}
+                <code className="bg-gray-100 px-1 rounded">{"{{link_aprovacao}}"}</code> · {whatsappMessageTemplate.length}/1000 caracteres
               </p>
             </div>
           </div>
