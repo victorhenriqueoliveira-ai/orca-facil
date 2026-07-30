@@ -93,6 +93,7 @@ export async function PATCH(request: NextRequest) {
     "quote_validity_days",
     "profit_margin_pct",
     "logo_url",
+    "cpf_cnpj",
     "followup_days",
     "price_alert_days",
     "sheet_waste_pct",
