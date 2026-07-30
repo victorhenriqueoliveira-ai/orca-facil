@@ -44,6 +44,7 @@ export default function DashboardPage() {
   const [periodEnd, setPeriodEnd] = useState(getMesAtualFim);
   const [conversion, setConversion] = useState<ConversionMetrics | null>(null);
   const [loadingConversion, setLoadingConversion] = useState(false);
+  const [showGuia, setShowGuia] = useState(false);
 
   useEffect(() => {
     fetch("/api/dashboard/stats")
@@ -192,22 +193,122 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3 pt-4">
+        <div className="grid grid-cols-3 gap-3 pt-4">
           <Link
             href="/orcamentos"
             className="flex flex-col items-center gap-2 bg-bg-base hover:bg-border/40 rounded-xl p-4 transition-colors"
           >
             <span className="text-2xl">📋</span>
-            <span className="text-sm font-medium text-text-base">Meus Orçamentos</span>
+            <span className="text-xs font-medium text-text-base text-center">Meus Orçamentos</span>
           </Link>
           <Link
             href="/clientes"
             className="flex flex-col items-center gap-2 bg-bg-base hover:bg-border/40 rounded-xl p-4 transition-colors"
           >
             <span className="text-2xl">👥</span>
-            <span className="text-sm font-medium text-text-base">Clientes</span>
+            <span className="text-xs font-medium text-text-base text-center">Clientes</span>
           </Link>
+          <button
+            onClick={() => setShowGuia(true)}
+            className="flex flex-col items-center gap-2 bg-bg-base hover:bg-border/40 rounded-xl p-4 transition-colors"
+          >
+            <span className="text-2xl">💡</span>
+            <span className="text-xs font-medium text-text-base text-center">Como funciona</span>
+          </button>
         </div>
+
+        {/* Modal: Como funciona */}
+        {showGuia && (
+          <div
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-0 sm:px-4"
+            onClick={() => setShowGuia(false)}
+          >
+            <div
+              className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 space-y-5 max-h-[85vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-bold text-text-base">Como funciona o Orça Fácil</h2>
+                <button
+                  onClick={() => setShowGuia(false)}
+                  className="text-text-base/40 hover:text-text-base transition-colors p-1"
+                  aria-label="Fechar"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+
+              <ol className="space-y-4">
+                {[
+                  {
+                    n: "1",
+                    titulo: "Monte seu Catálogo",
+                    desc: "Cadastre os materiais e serviços que você usa com o preço unitário. Eles ficam salvos para usar em qualquer orçamento.",
+                    href: "/catalogo",
+                    label: "Ir ao Catálogo",
+                  },
+                  {
+                    n: "2",
+                    titulo: "Cadastre seus Clientes",
+                    desc: "Salve nome, telefone e endereço dos seus clientes para agilizar na hora de criar orçamentos.",
+                    href: "/clientes",
+                    label: "Ver Clientes",
+                  },
+                  {
+                    n: "3",
+                    titulo: "Crie um Orçamento",
+                    desc: "Escolha o cliente, adicione ambientes, insira os itens do catálogo e defina sua margem de lucro. O sistema calcula tudo.",
+                    href: "/orcamentos/novo",
+                    label: "Criar Orçamento",
+                  },
+                  {
+                    n: "4",
+                    titulo: "Envie o link de aprovação",
+                    desc: "Gere um PDF profissional ou envie o link direto para o cliente aprovar online. Você é notificado assim que ele aprovar.",
+                    href: null,
+                    label: null,
+                  },
+                  {
+                    n: "5",
+                    titulo: "Acompanhe pelo Dashboard",
+                    desc: "Veja quantos orçamentos foram enviados e aprovados, sua taxa de conversão e ticket médio no período.",
+                    href: null,
+                    label: null,
+                  },
+                ].map(({ n, titulo, desc, href, label }) => (
+                  <li key={n} className="flex gap-4">
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-brand-primary/10 text-brand-primary text-sm font-bold flex items-center justify-center">
+                      {n}
+                    </span>
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-text-base">{titulo}</p>
+                      <p className="text-xs text-text-base/60 leading-relaxed">{desc}</p>
+                      {href && label && (
+                        <Link
+                          href={href}
+                          onClick={() => setShowGuia(false)}
+                          className="inline-block text-xs text-brand-primary font-medium underline underline-offset-2 mt-0.5"
+                        >
+                          {label} →
+                        </Link>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+
+              <button
+                onClick={() => setShowGuia(false)}
+                className="w-full bg-brand-primary text-white text-sm font-semibold py-3 rounded-xl hover:bg-brand-primary/90 transition-colors"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Performance do período */}
         <div className="border border-border rounded-2xl p-5 space-y-4 text-left">
