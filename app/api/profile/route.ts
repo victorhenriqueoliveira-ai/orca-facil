@@ -21,7 +21,7 @@ export async function GET() {
   const { data: profile, error } = await supabase
     .from("profiles")
     .select(
-      "id, business_name, city, phone, pix_key, bank_info, logo_url, profit_margin_pct, quote_validity_days, followup_days, price_alert_days, sheet_waste_pct, whatsapp_message_template, updated_at"
+      "id, business_name, city, phone, pix_key, bank_info, logo_url, profit_margin_pct, quote_validity_days, followup_days, price_alert_days, sheet_waste_pct, whatsapp_message_template, show_cnpj_on_pdf, cpf_cnpj, updated_at"
     )
     .eq("id", user.id)
     .single();
@@ -97,6 +97,7 @@ export async function PATCH(request: NextRequest) {
     "price_alert_days",
     "sheet_waste_pct",
     "whatsapp_message_template",
+    "show_cnpj_on_pdf",
   ] as const;
 
   const updates: Record<string, unknown> = {};

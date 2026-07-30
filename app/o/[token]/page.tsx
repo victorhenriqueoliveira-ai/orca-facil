@@ -49,7 +49,7 @@ export default async function ApprovalPage({ params }: PageProps) {
   const isAccepted = quote.status === "accepted";
 
   // Logo: gerar signed URL do storage
-  const profileRaw = quote.profiles as Record<string, unknown> | null;
+  const profileRaw = quote.profiles as unknown as Record<string, unknown> | null;
   const logoUrl = profileRaw?.logo_url as string | null | undefined;
   let signedLogoUrl: string | null = null;
   if (logoUrl) {
@@ -62,7 +62,7 @@ export default async function ApprovalPage({ params }: PageProps) {
   const businessName = (profileRaw?.business_name as string | null) ?? "Marcenaria";
   const businessPhone = (profileRaw?.phone as string | null) ?? null;
 
-  const customerRaw = quote.customers as Record<string, unknown> | null;
+  const customerRaw = quote.customers as unknown as Record<string, unknown> | null;
   const customerName = (customerRaw?.name as string | null) ?? "Cliente";
   const customerPhone = (customerRaw?.phone as string | null) ?? null;
 

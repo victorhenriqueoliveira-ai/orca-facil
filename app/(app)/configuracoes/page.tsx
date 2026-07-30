@@ -34,6 +34,8 @@ interface Perfil {
   price_alert_days: number | null;
   sheet_waste_pct: number | null;
   whatsapp_message_template: string | null;
+  show_cnpj_on_pdf: boolean | null;
+  cpf_cnpj: string | null;
 }
 
 export default function ConfiguracoesPage() {
@@ -67,6 +69,7 @@ export default function ConfiguracoesPage() {
   const [priceAlertDays, setPriceAlertDays] = useState("60");
   const [sheetWastePct, setSheetWastePct] = useState("15");
   const [whatsappMessageTemplate, setWhatsappMessageTemplate] = useState("");
+  const [showCnpjOnPdf, setShowCnpjOnPdf] = useState(false);
 
   const inputFileRef = useRef<HTMLInputElement>(null);
 
@@ -111,6 +114,7 @@ export default function ConfiguracoesPage() {
         setPriceAlertDays(String(p.price_alert_days ?? 60));
         setSheetWastePct(String(p.sheet_waste_pct ?? 15));
         setWhatsappMessageTemplate(p.whatsapp_message_template ?? "");
+        setShowCnpjOnPdf(p.show_cnpj_on_pdf ?? false);
       }
 
       if (dados.logoSignedUrl) {
@@ -144,6 +148,7 @@ export default function ConfiguracoesPage() {
           price_alert_days: Number(priceAlertDays),
           sheet_waste_pct: Number(sheetWastePct),
           whatsapp_message_template: whatsappMessageTemplate || null,
+          show_cnpj_on_pdf: showCnpjOnPdf,
         }),
       });
 
@@ -480,6 +485,49 @@ export default function ConfiguracoesPage() {
                 className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
               />
             </div>
+          </div>
+        </section>
+
+        {/* Seção: Documentos e PDF */}
+        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+          <h2 className="text-lg font-semibold text-gray-800">
+            Documentos e PDF
+          </h2>
+          <p className="text-sm text-gray-500">
+            Informações exibidas no PDF dos orçamentos enviados ao cliente.
+          </p>
+
+          <div className="flex items-center justify-between py-1">
+            <div>
+              <p className="text-sm font-medium text-gray-700">
+                Exibir CNPJ/CPF no orçamento
+              </p>
+              {perfil?.cpf_cnpj ? (
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {perfil.cpf_cnpj}
+                </p>
+              ) : (
+                <p className="text-xs text-amber-600 mt-0.5">
+                  Nenhum CNPJ/CPF cadastrado ainda.
+                </p>
+              )}
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={showCnpjOnPdf}
+              onClick={() => setShowCnpjOnPdf((v) => !v)}
+              disabled={!perfil?.cpf_cnpj}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary/50 disabled:opacity-40 disabled:cursor-not-allowed ${
+                showCnpjOnPdf ? "bg-brand-primary" : "bg-gray-200"
+              }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                  showCnpjOnPdf ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
           </div>
         </section>
 

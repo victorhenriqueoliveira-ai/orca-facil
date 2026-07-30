@@ -54,6 +54,8 @@ export interface PdfQuoteData {
     pixKey: string | null;
     bankInfo: string | null;
     logoUrl: string | null; // signed URL for Puppeteer
+    cpfCnpj: string | null;
+    showCnpj: boolean;
   };
   versions: PdfVersion[];
 }
@@ -373,8 +375,11 @@ function renderHeader(data: PdfQuoteData): string {
     ? `<img src="${data.profile.logoUrl}" alt="Logo ${data.profile.businessName}" />`
     : `<div class="no-logo">${data.profile.businessName.slice(0, 2).toUpperCase()}</div>`;
 
-  const cityLine = data.profile.city ? `<div class="meta">${data.profile.city}</div>` : "";
-  const phoneLine = data.profile.phone ? `<div class="meta">${data.profile.phone}</div>` : "";
+  const cityLine = data.profile.city ? `<div class="meta">${escapeHtml(data.profile.city)}</div>` : "";
+  const phoneLine = data.profile.phone ? `<div class="meta">${escapeHtml(data.profile.phone)}</div>` : "";
+  const cnpjLine = data.profile.showCnpj && data.profile.cpfCnpj
+    ? `<div class="meta">${escapeHtml(data.profile.cpfCnpj)}</div>`
+    : "";
 
   const titleLine = data.title
     ? `<div class="meta" style="margin-top:4px;font-style:italic;">${escapeHtml(data.title)}</div>`
@@ -387,6 +392,7 @@ function renderHeader(data: PdfQuoteData): string {
         <div class="business-name">${escapeHtml(data.profile.businessName)}</div>
         ${cityLine}
         ${phoneLine}
+        ${cnpjLine}
         <div class="quote-badge">Orçamento #${data.quoteNumber}</div>
         ${titleLine}
         <div class="meta" style="margin-top:6px;">Emitido em ${formatDate(data.createdAt)}</div>

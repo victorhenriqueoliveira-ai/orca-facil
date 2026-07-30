@@ -127,7 +127,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   // Fetch profile (logo_url, pix, etc.)
   const { data: profile } = await supabase
     .from("profiles")
-    .select("business_name, city, phone, logo_url, pix_key, bank_info, quote_validity_days")
+    .select("business_name, city, phone, logo_url, pix_key, bank_info, quote_validity_days, cpf_cnpj, show_cnpj_on_pdf")
     .eq("id", user.id)
     .single();
 
@@ -262,6 +262,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       pixKey: profile?.pix_key ?? null,
       bankInfo: profile?.bank_info ?? null,
       logoUrl: logoSignedUrl,
+      cpfCnpj: profile?.cpf_cnpj ?? null,
+      showCnpj: profile?.show_cnpj_on_pdf ?? false,
     },
     versions,
   };
