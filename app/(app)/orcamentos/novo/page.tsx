@@ -223,6 +223,7 @@ export default function NovoOrcamentoPage() {
           <StepSend
             quoteId={state.quoteId}
             versionId={state.versionId}
+            quoteNumber={state.quoteNumber ?? undefined}
             onBack={() => dispatch({ type: "GO_TO_STEP", payload: 3 })}
           />
         )}

@@ -7,6 +7,8 @@ import { formatCpfCnpj } from "@/lib/utils/cpf-cnpj";
 import { generatePdfFromHtml } from "@/lib/pdf/generate";
 import type { PdfMode, PdfQuoteData, PdfRoom, PdfVersion } from "@/lib/pdf/template";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://orcafacil.com.br";
+
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
@@ -76,6 +78,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       created_at,
       show_margin_on_pdf,
       user_id,
+      approval_token,
       customers ( id, name, phone, email, address ),
       quote_versions (
         id,
@@ -320,11 +323,43 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Erro ao gerar URL do PDF" }, { status: 500 });
   }
 
-  // Update quotes.status = 'sent'
-  await serviceClient
-    .from("quotes")
-    .update({ status: "sent" })
-    .eq("id", quoteId);
+  // Gerar approval_token se ainda não existir, e atualizar status = 'sent'
+  let approvalToken = (quote.approval_token as string | null) ?? null;
 
-  return NextResponse.json({ signed_url: signedUrlData.signedUrl });
+  if (!approvalToken) {
+    const { data: profileData } = await serviceClient
+      .from("profiles")
+      .select("quote_validity_days")
+      .eq("user_id", user.id)
+      .single();
+
+    const validityDays = (profileData?.quote_validity_days as number | null) ?? 15;
+    const expiresAt = new Date(Date.now() + validityDays * 24 * 60 * 60 * 1000);
+    approvalToken = crypto.randomUUID();
+
+    await serviceClient
+      .from("quotes")
+      .update({
+        status: "sent",
+        approval_token: approvalToken,
+        approval_token_expires_at: expiresAt.toISOString(),
+        sent_at: new Date().toISOString(),
+      })
+      .eq("id", quoteId)
+      .is("approval_token", null);
+  } else {
+    await serviceClient
+      .from("quotes")
+      .update({ status: "sent" })
+      .eq("id", quoteId);
+  }
+
+  const approvalLink = `${APP_URL}/o/${approvalToken}`;
+
+  return NextResponse.json({
+    signed_url: signedUrlData.signedUrl,
+    approval_link: approvalLink,
+    customer_name: rawCustomer?.name ?? null,
+    quote_number: quote.quote_number as number,
+  });
 }

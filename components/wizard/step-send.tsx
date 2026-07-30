@@ -81,6 +81,8 @@ export function StepSend({
 }: StepSendProps) {
   const [state, setState] = useState<SendState>("idle");
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [liveApprovalLink, setLiveApprovalLink] = useState<string | undefined>(approvalLink);
+  const [copied, setCopied] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mode, setMode] = useState<"summary" | "detailed">("summary");
 
@@ -128,10 +130,10 @@ export function StepSend({
     const interpolated = interpolateTemplate(rawTemplate, {
       nome_cliente: customerName,
       numero_orcamento: quoteNumber,
-      link_aprovacao: approvalLink,
+      link_aprovacao: liveApprovalLink,
     });
     setEditedMessage(interpolated);
-  }, [rawTemplate, customerName, quoteNumber, approvalLink, templateLoaded]);
+  }, [rawTemplate, customerName, quoteNumber, liveApprovalLink, templateLoaded]);
 
   // When versions list changes, update selection
   useEffect(() => {
@@ -168,8 +170,26 @@ export function StepSend({
         throw new Error(err.error ?? "Erro ao gerar PDF");
       }
 
-      const data = await res.json();
+      const data = await res.json() as {
+        signed_url: string;
+        approval_link?: string;
+        customer_name?: string | null;
+        quote_number?: number;
+      };
       setSignedUrl(data.signed_url);
+
+      // Atualiza a mensagem do WhatsApp com o link real de aprovação
+      if (data.approval_link) {
+        setLiveApprovalLink(data.approval_link);
+        setEditedMessage(
+          interpolateTemplate(rawTemplate, {
+            nome_cliente: data.customer_name ?? customerName,
+            numero_orcamento: data.quote_number ?? quoteNumber,
+            link_aprovacao: data.approval_link,
+          })
+        );
+      }
+
       setState("done");
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Erro ao gerar PDF");
@@ -378,6 +398,32 @@ export function StepSend({
             </svg>
             Enviar pelo WhatsApp
           </button>
+
+          {/* Link de aprovação copiável */}
+          {liveApprovalLink && (
+            <div className="border border-border rounded-xl p-4 space-y-2">
+              <p className="text-xs font-medium text-text-base/60">Link de aprovação do cliente</p>
+              <div className="flex items-center gap-2">
+                <p className="flex-1 text-xs text-text-base bg-bg-base border border-border rounded-lg px-3 py-2 truncate">
+                  {liveApprovalLink}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(liveApprovalLink);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  className="flex-shrink-0 text-xs font-medium text-brand-primary border border-brand-primary/30 rounded-lg px-3 py-2 hover:bg-brand-primary/5 transition-colors"
+                >
+                  {copied ? "Copiado!" : "Copiar"}
+                </button>
+              </div>
+              <p className="text-xs text-text-base/40">
+                Envie este link por qualquer canal — o cliente aprova com um clique.
+              </p>
+            </div>
+          )}
 
           {/* Direct link as fallback */}
           <a
