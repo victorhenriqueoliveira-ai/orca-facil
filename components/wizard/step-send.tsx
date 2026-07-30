@@ -181,13 +181,17 @@ export function StepSend({
       // Atualiza a mensagem do WhatsApp com o link real de aprovação
       if (data.approval_link) {
         setLiveApprovalLink(data.approval_link);
-        setEditedMessage(
-          interpolateTemplate(rawTemplate, {
-            nome_cliente: data.customer_name ?? customerName,
-            numero_orcamento: data.quote_number ?? quoteNumber,
-            link_aprovacao: data.approval_link,
-          })
-        );
+        const hasPlaceholder = rawTemplate.includes("{{link_aprovacao}}");
+        const interpolated = interpolateTemplate(rawTemplate, {
+          nome_cliente: data.customer_name ?? customerName,
+          numero_orcamento: data.quote_number ?? quoteNumber,
+          link_aprovacao: data.approval_link,
+        });
+        // Se o template não tinha o placeholder, adiciona o link no final
+        const finalMessage = hasPlaceholder
+          ? interpolated
+          : `${interpolated}\n\nLink para aprovação:\n${data.approval_link}`;
+        setEditedMessage(finalMessage);
       }
 
       setState("done");
@@ -315,9 +319,9 @@ export function StepSend({
               className="w-full text-sm text-gray-800 border border-gray-200 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
               placeholder="Digite sua mensagem para o cliente..."
             />
-            {!approvalLink && (
+            {!rawTemplate.includes("{{link_aprovacao}}") && (
               <p className="text-xs text-amber-600 mt-1">
-                ⚠️ Link de aprovação não disponível ainda.
+                ⚠️ Seu modelo não contém <code className="bg-amber-100 px-1 rounded">{"{{link_aprovacao}}"}</code>. O link será adicionado automaticamente ao final da mensagem após gerar o PDF.
               </p>
             )}
             <button
