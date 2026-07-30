@@ -1,6 +1,21 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+
+function formatCpfCnpj(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 14);
+  if (digits.length <= 11) {
+    return digits
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  }
+  return digits
+    .replace(/(\d{2})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1/$2")
+    .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+}
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -106,7 +121,7 @@ export default function ConfiguracoesPage() {
         setPerfil(p);
         setBusinessName(p.business_name ?? "");
         setCity(p.city ?? "");
-        setCpfCnpj(p.cpf_cnpj ?? "");
+        setCpfCnpj(formatCpfCnpj(p.cpf_cnpj ?? ""));
         setPhone(p.phone ?? "");
         setPixKey(p.pix_key ?? "");
         setBankInfo(p.bank_info ?? "");
@@ -410,7 +425,7 @@ export default function ConfiguracoesPage() {
                 id="cpf_cnpj"
                 type="text"
                 value={cpfCnpj}
-                onChange={(e) => setCpfCnpj(e.target.value)}
+                onChange={(e) => setCpfCnpj(formatCpfCnpj(e.target.value))}
                 placeholder="Ex: 00.000.000/0001-00"
                 className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
               />
