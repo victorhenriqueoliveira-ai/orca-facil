@@ -23,6 +23,8 @@ export interface PdfRoom {
   id: string;
   name: string;
   items: PdfItem[];
+  /** URLs assinadas de fotos de referência do ambiente (max 3) */
+  photos?: string[];
 }
 
 export interface PdfVersion {
@@ -52,6 +54,8 @@ export interface PdfQuoteData {
     pixKey: string | null;
     bankInfo: string | null;
     logoUrl: string | null; // signed URL for Puppeteer
+    cpfCnpj: string | null;
+    showCnpj: boolean;
   };
   versions: PdfVersion[];
 }
@@ -337,6 +341,29 @@ const STYLES = `
   .comparison-table tr.total-row td.amount {
     text-align: right;
   }
+  .room-photos {
+    display: flex;
+    gap: 8px;
+    padding: 10px 14px;
+    border-top: 1px solid #f3f4f6;
+  }
+  .room-photos img {
+    max-width: 100%;
+    width: 120px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #e5e7eb;
+  }
+  .room-photos-title {
+    font-size: 11px;
+    font-weight: bold;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 8px 14px 0;
+    border-top: 1px solid #f3f4f6;
+  }
 `;
 
 // ----------------------------------------------------------------
@@ -348,8 +375,11 @@ function renderHeader(data: PdfQuoteData): string {
     ? `<img src="${data.profile.logoUrl}" alt="Logo ${data.profile.businessName}" />`
     : `<div class="no-logo">${data.profile.businessName.slice(0, 2).toUpperCase()}</div>`;
 
-  const cityLine = data.profile.city ? `<div class="meta">${data.profile.city}</div>` : "";
-  const phoneLine = data.profile.phone ? `<div class="meta">${data.profile.phone}</div>` : "";
+  const cityLine = data.profile.city ? `<div class="meta">${escapeHtml(data.profile.city)}</div>` : "";
+  const phoneLine = data.profile.phone ? `<div class="meta">${escapeHtml(data.profile.phone)}</div>` : "";
+  const cnpjLine = data.profile.showCnpj && data.profile.cpfCnpj
+    ? `<div class="meta">${escapeHtml(data.profile.cpfCnpj)}</div>`
+    : "";
 
   const titleLine = data.title
     ? `<div class="meta" style="margin-top:4px;font-style:italic;">${escapeHtml(data.title)}</div>`
@@ -362,6 +392,7 @@ function renderHeader(data: PdfQuoteData): string {
         <div class="business-name">${escapeHtml(data.profile.businessName)}</div>
         ${cityLine}
         ${phoneLine}
+        ${cnpjLine}
         <div class="quote-badge">Orçamento #${data.quoteNumber}</div>
         ${titleLine}
         <div class="meta" style="margin-top:6px;">Emitido em ${formatDate(data.createdAt)}</div>
@@ -460,6 +491,22 @@ function renderRoomDetailed(room: PdfRoom, marginPct: number): string {
           )
           .join("");
 
+  // Seção de fotos de referência — somente no modo detalhado e quando há fotos
+  const photosHtml = (room.photos && room.photos.length > 0)
+    ? `
+      <div class="room-photos-title">Fotos de referência</div>
+      <div class="room-photos">
+        ${room.photos
+          .slice(0, 3)
+          .map(
+            (url) =>
+              `<img src="${url}" alt="Foto de referência" />`
+          )
+          .join("")}
+      </div>
+    `
+    : "";
+
   return `
     <div class="room-card">
       <div class="room-header">
@@ -478,6 +525,7 @@ function renderRoomDetailed(room: PdfRoom, marginPct: number): string {
         </thead>
         <tbody>${itemsHtml}</tbody>
       </table>
+      ${photosHtml}
     </div>
   `;
 }

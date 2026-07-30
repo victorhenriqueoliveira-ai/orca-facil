@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSubscription } from "@/components/subscription-provider";
+import { AlertsBadge } from "@/components/alerts-badge";
 
 const ITENS_NAV = [
   {
@@ -162,7 +163,8 @@ export function Sidebar({ className = "" }: SidebarProps) {
                   }`}
                 >
                   {icone}
-                  <span>{label}</span>
+                  <span className="flex-1">{label}</span>
+                  {href === "/orcamentos" && <AlertsBadge />}
                 </Link>
               </li>
             );

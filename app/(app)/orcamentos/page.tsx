@@ -20,6 +20,7 @@ export default function OrcamentosPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("");
+  const [textSearch, setTextSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
@@ -29,12 +30,13 @@ export default function OrcamentosPage() {
   const limit = 20;
 
   const fetchQuotes = useCallback(
-    async (status: string, p: number) => {
+    async (status: string, p: number, q: string) => {
       setIsLoading(true);
       setError(null);
       try {
         const params = new URLSearchParams();
         if (status) params.set("status", status);
+        if (q.trim()) params.set("q", q.trim());
         params.set("page", String(p));
         params.set("limit", String(limit));
 
@@ -56,11 +58,19 @@ export default function OrcamentosPage() {
   );
 
   useEffect(() => {
-    fetchQuotes(statusFilter, page);
-  }, [statusFilter, page, fetchQuotes]);
+    const timer = setTimeout(() => {
+      fetchQuotes(statusFilter, page, textSearch);
+    }, textSearch ? 300 : 0);
+    return () => clearTimeout(timer);
+  }, [statusFilter, page, textSearch, fetchQuotes]);
 
   function handleStatusFilterChange(value: string) {
     setStatusFilter(value);
+    setPage(1);
+  }
+
+  function handleTextSearchChange(value: string) {
+    setTextSearch(value);
     setPage(1);
   }
 
@@ -96,8 +106,7 @@ export default function OrcamentosPage() {
         throw new Error(err.error ?? "Erro ao atualizar status");
       }
       setFeedbackMessage("Status atualizado com sucesso!");
-      // Recarregar lista
-      fetchQuotes(statusFilter, page);
+      fetchQuotes(statusFilter, page, textSearch);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao atualizar status");
     }
@@ -113,7 +122,7 @@ export default function OrcamentosPage() {
         throw new Error(err.error ?? "Erro ao excluir orçamento");
       }
       setFeedbackMessage("Orçamento excluído.");
-      fetchQuotes(statusFilter, page);
+      fetchQuotes(statusFilter, page, textSearch);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao excluir orçamento");
     } finally {
@@ -149,6 +158,15 @@ export default function OrcamentosPage() {
           + Novo
         </Link>
       </div>
+
+      {/* Busca por texto */}
+      <input
+        type="search"
+        value={textSearch}
+        onChange={(e) => handleTextSearchChange(e.target.value)}
+        placeholder="Buscar por título ou número..."
+        className="w-full border border-border rounded-lg px-3 py-2 text-sm text-text-base bg-bg-base focus:outline-none focus:ring-2 focus:ring-brand-primary/50 mb-3"
+      />
 
       {/* Status filter chips — horizontal scroll on mobile */}
       <div className="flex flex-wrap gap-2 pb-2 mb-4">

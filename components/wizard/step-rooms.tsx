@@ -2,6 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { RoomItemForm, type RoomItemFormData } from "@/components/wizard/room-item-form";
+import { RoomPhotoUpload } from "@/components/wizard/room-photo-upload";
+
+/** Área padrão de uma chapa de MDF 2750mm × 1830mm em m² */
+export const AREA_CHAPA_M2 = 2.750 * 1.830; // 5.0325 m²
+
+/**
+ * Calcula o número de chapas de MDF necessárias dado a área total e o percentual de perda.
+ * @param areaTotalM2 - Área total em metros quadrados
+ * @param sheetWastePct - Percentual de perda (0–100)
+ * @returns Número inteiro de chapas (arredondado para cima), ou 0 se área <= 0
+ */
+export function calcChapas(areaTotalM2: number, sheetWastePct: number): number {
+  if (areaTotalM2 <= 0) return 0;
+  const areaUtil = AREA_CHAPA_M2 * (1 - sheetWastePct / 100);
+  return Math.ceil(areaTotalM2 / areaUtil);
+}
 
 export interface Template {
   id: string;
@@ -62,6 +78,7 @@ export function StepRooms({
   const [addingRoom, setAddingRoom] = useState(false);
   const [renamingRoomId, setRenamingRoomId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [sheetWastePct, setSheetWastePct] = useState<number>(15);
 
   // State for adding new version
   const [showAddVersionModal, setShowAddVersionModal] = useState(false);
@@ -75,6 +92,19 @@ export function StepRooms({
   useEffect(() => {
     setRooms([]);
   }, [versionId]);
+
+  useEffect(() => {
+    fetch("/api/profile")
+      .then((r) => r.json())
+      .then((data) => {
+        if (typeof data?.sheet_waste_pct === "number") {
+          setSheetWastePct(data.sheet_waste_pct);
+        }
+      })
+      .catch(() => {
+        // mantém o default de 15% em caso de erro
+      });
+  }, []);
 
   useEffect(() => {
     setTemplatesLoading(true);
@@ -407,6 +437,25 @@ export function StepRooms({
                 ))}
               </ul>
             )}
+
+            {/* Estimativa de chapas de MDF */}
+            {(() => {
+              const areaTotal = room.items
+                .filter((i) => i.unit === "m²")
+                .reduce((acc, i) => acc + i.quantity, 0);
+              const numChapas = calcChapas(areaTotal, sheetWastePct);
+              if (numChapas <= 0) return null;
+              return (
+                <div className="px-4 py-2 bg-amber-50 border-t border-amber-100">
+                  <p className="text-xs text-amber-700">
+                    Estimativa: ~{numChapas} {numChapas === 1 ? "chapa" : "chapas"} de MDF 2,75×1,83m
+                  </p>
+                </div>
+              );
+            })()}
+
+            {/* Upload de fotos — exibido apenas quando o ambiente já possui um ID real */}
+            <RoomPhotoUpload roomId={room.id} />
 
             {addingItemToRoomId === room.id ? (
               <div className="border-t border-gray-100">

@@ -16,23 +16,84 @@ export interface StepSendProps {
   versionId: string;
   versions?: QuoteVersionOption[];
   customerName?: string;
+  quoteNumber?: number;
+  approvalLink?: string;
   onBack: () => void;
 }
 
 type SendState = "idle" | "generating" | "done" | "error";
 
 // ----------------------------------------------------------------
+// Template padrão
+// ----------------------------------------------------------------
+
+export const DEFAULT_WHATSAPP_TEMPLATE = `Olá, {{nome_cliente}}! Segue o orçamento #{{numero_orcamento}} da sua solicitação.
+
+Para visualizar e aprovar com um clique, acesse:
+{{link_aprovacao}}
+
+Qualquer dúvida, estou à disposição.`;
+
+// ----------------------------------------------------------------
+// Interpolação de variáveis
+// ----------------------------------------------------------------
+
+export function interpolateTemplate(
+  template: string,
+  variables: {
+    nome_cliente?: string;
+    numero_orcamento?: number | string;
+    link_aprovacao?: string;
+  }
+): string {
+  let result = template;
+
+  result = result.replace(
+    /\{\{nome_cliente\}\}/g,
+    variables.nome_cliente ?? "cliente"
+  );
+
+  result = result.replace(
+    /\{\{numero_orcamento\}\}/g,
+    variables.numero_orcamento != null ? String(variables.numero_orcamento) : ""
+  );
+
+  result = result.replace(
+    /\{\{link_aprovacao\}\}/g,
+    variables.link_aprovacao ?? ""
+  );
+
+  return result;
+}
+
+// ----------------------------------------------------------------
 // StepSend — Etapa 4 do wizard: Gerar PDF e enviar pelo WhatsApp
 // ----------------------------------------------------------------
 
-export function StepSend({ quoteId, versionId, versions = [], customerName, onBack }: StepSendProps) {
+export function StepSend({
+  quoteId,
+  versionId,
+  versions = [],
+  customerName,
+  quoteNumber,
+  approvalLink,
+  onBack,
+}: StepSendProps) {
   const [state, setState] = useState<SendState>("idle");
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mode, setMode] = useState<"summary" | "detailed">("summary");
 
+  // Template bruto (com variáveis) — usado para salvar no perfil
+  const [rawTemplate, setRawTemplate] = useState<string>(DEFAULT_WHATSAPP_TEMPLATE);
+  // Mensagem editada (interpolada) — usada para o link do WhatsApp
+  const [editedMessage, setEditedMessage] = useState<string>("");
+  // Estado do salvamento do modelo
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  // Se o template foi carregado do perfil
+  const [templateLoaded, setTemplateLoaded] = useState(false);
+
   // Version selection: default all selected
-  // If no versions provided, fall back to [{ id: versionId, name: 'Padrão' }]
   const allVersions: QuoteVersionOption[] =
     versions.length > 0 ? versions : [{ id: versionId, name: "Padrão" }];
 
@@ -40,7 +101,39 @@ export function StepSend({ quoteId, versionId, versions = [], customerName, onBa
     allVersions.map((v) => v.id)
   );
 
-  // When versions list changes (e.g. new version was added), update selection
+  // Carregar template do perfil ao montar
+  useEffect(() => {
+    async function loadTemplate() {
+      try {
+        const res = await fetch("/api/profile");
+        if (res.ok) {
+          const data = await res.json();
+          const profileTemplate = data?.profile?.whatsapp_message_template;
+          if (profileTemplate) {
+            setRawTemplate(profileTemplate);
+          }
+        }
+      } catch {
+        // Usar template padrão em caso de erro
+      } finally {
+        setTemplateLoaded(true);
+      }
+    }
+    loadTemplate();
+  }, []);
+
+  // Interpolar mensagem quando template ou dados mudarem
+  useEffect(() => {
+    if (!templateLoaded) return;
+    const interpolated = interpolateTemplate(rawTemplate, {
+      nome_cliente: customerName,
+      numero_orcamento: quoteNumber,
+      link_aprovacao: approvalLink,
+    });
+    setEditedMessage(interpolated);
+  }, [rawTemplate, customerName, quoteNumber, approvalLink, templateLoaded]);
+
+  // When versions list changes, update selection
   useEffect(() => {
     setSelectedVersionIds(allVersions.map((v) => v.id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -49,7 +142,6 @@ export function StepSend({ quoteId, versionId, versions = [], customerName, onBa
   function toggleVersion(id: string) {
     setSelectedVersionIds((prev) => {
       if (prev.includes(id)) {
-        // Prevent deselecting all
         if (prev.length <= 1) return prev;
         return prev.filter((v) => v !== id);
       }
@@ -86,28 +178,29 @@ export function StepSend({ quoteId, versionId, versions = [], customerName, onBa
   }
 
   function handleWhatsApp() {
-    if (!signedUrl) return;
-
-    const name = customerName ?? "cliente";
-    const waUrl = `https://wa.me/?text=Segue+o+orçamento+da+${encodeURIComponent(name)}%3A+${encodeURIComponent(signedUrl)}`;
-
-    // Try Web Share API first (mobile-friendly)
-    if (typeof navigator !== "undefined" && navigator.share) {
-      navigator
-        .share({
-          title: "Orçamento",
-          text: `Segue o orçamento da ${name}`,
-          url: signedUrl,
-        })
-        .catch(() => {
-          // Fallback to WhatsApp deep link if share fails
-          window.open(waUrl, "_blank");
-        });
-      return;
-    }
-
-    // Direct WhatsApp link
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(editedMessage)}`;
     window.open(waUrl, "_blank");
+  }
+
+  async function handleSaveTemplate() {
+    // Extrair o template bruto (reverter interpolação não é possível,
+    // então salvamos o rawTemplate que está com as variáveis)
+    setSaveState("saving");
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ whatsapp_message_template: rawTemplate }),
+      });
+      if (!res.ok) {
+        throw new Error("Erro ao salvar modelo");
+      }
+      setSaveState("saved");
+      setTimeout(() => setSaveState("idle"), 2000);
+    } catch {
+      setSaveState("error");
+      setTimeout(() => setSaveState("idle"), 2000);
+    }
   }
 
   function handleRetry() {
@@ -139,7 +232,7 @@ export function StepSend({ quoteId, versionId, versions = [], customerName, onBa
                   value="summary"
                   checked={mode === "summary"}
                   onChange={() => setMode("summary")}
-                  className="mt-0.5 accent-blue-600"
+                  className="mt-0.5 accent-brand-primary"
                 />
                 <div>
                   <span className="text-sm font-medium text-gray-800">Resumido</span>
@@ -155,7 +248,7 @@ export function StepSend({ quoteId, versionId, versions = [], customerName, onBa
                   value="detailed"
                   checked={mode === "detailed"}
                   onChange={() => setMode("detailed")}
-                  className="mt-0.5 accent-blue-600"
+                  className="mt-0.5 accent-brand-primary"
                 />
                 <div>
                   <span className="text-sm font-medium text-gray-800">Detalhado</span>
@@ -178,19 +271,50 @@ export function StepSend({ quoteId, versionId, versions = [], customerName, onBa
                       type="checkbox"
                       checked={selectedVersionIds.includes(v.id)}
                       onChange={() => toggleVersion(v.id)}
-                      className="accent-blue-600"
+                      className="accent-brand-primary"
                     />
                     <span className="text-sm text-gray-800">{v.name}</span>
                   </label>
                 ))}
               </div>
               {selectedVersionIds.length > 1 && (
-                <p className="text-xs text-blue-600 mt-2">
+                <p className="text-xs text-brand-primary mt-2">
                   PDF comparativo será gerado com tabela de comparação entre versões.
                 </p>
               )}
             </div>
           )}
+
+          {/* Mensagem WhatsApp editável */}
+          <div className="border border-gray-200 rounded-xl bg-white p-4">
+            <p className="text-sm font-medium text-gray-700 mb-2">Mensagem WhatsApp</p>
+            <textarea
+              value={editedMessage}
+              onChange={(e) => setEditedMessage(e.target.value)}
+              rows={8}
+              className="w-full text-sm text-gray-800 border border-gray-200 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
+              placeholder="Digite sua mensagem para o cliente..."
+            />
+            {!approvalLink && (
+              <p className="text-xs text-amber-600 mt-1">
+                ⚠️ Link de aprovação não disponível ainda.
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={handleSaveTemplate}
+              disabled={saveState === "saving"}
+              className="mt-2 text-xs text-brand-primary hover:text-brand-primary/80 underline transition-colors disabled:opacity-50"
+            >
+              {saveState === "saving"
+                ? "Salvando..."
+                : saveState === "saved"
+                  ? "✓ Modelo salvo!"
+                  : saveState === "error"
+                    ? "Erro ao salvar"
+                    : "Salvar como meu modelo"}
+            </button>
+          </div>
         </>
       )}
 
@@ -198,7 +322,7 @@ export function StepSend({ quoteId, versionId, versions = [], customerName, onBa
       {state === "generating" && (
         <div className="flex flex-col items-center justify-center gap-4 py-10">
           <div
-            className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"
+            className="w-10 h-10 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin"
             role="status"
             aria-label="Carregando"
           />
@@ -260,7 +384,7 @@ export function StepSend({ quoteId, versionId, versions = [], customerName, onBa
             href={signedUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-center text-sm text-blue-600 underline hover:text-blue-800 transition-colors"
+            className="text-center text-sm text-brand-primary underline hover:text-brand-primary/80 transition-colors"
           >
             Ou abrir/baixar o PDF diretamente
           </a>
@@ -282,7 +406,7 @@ export function StepSend({ quoteId, versionId, versions = [], customerName, onBa
           type="button"
           onClick={handleGeneratePdf}
           disabled={selectedVersionIds.length === 0}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-4 text-base font-semibold transition-colors shadow-sm disabled:opacity-50"
+          className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl px-4 py-4 text-base font-semibold transition-colors shadow-sm disabled:opacity-50"
         >
           Gerar PDF
         </button>

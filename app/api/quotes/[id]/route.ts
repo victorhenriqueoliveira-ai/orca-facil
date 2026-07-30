@@ -6,9 +6,12 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://orcafacil.com.br";
+
 /**
  * GET /api/quotes/[id]
  * Retorna orçamento completo: quote + versions + rooms + items.
+ * Inclui approval_token, approval_link e sent_at quando status é 'sent' ou 'accepted'.
  * Guard: apenas o próprio usuário acessa.
  */
 export async function GET(_request: NextRequest, { params }: RouteParams) {
@@ -35,6 +38,9 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
       notes,
       show_margin_on_pdf,
       customer_id,
+      approval_token,
+      approval_token_expires_at,
+      sent_at,
       customers ( id, name, email, phone ),
       quote_versions (
         id,
@@ -90,6 +96,18 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     };
   });
 
+  // Incluir approval_link quando status é 'sent' ou 'accepted' e há token
+  const quoteStatus = quote.status as string;
+  const approvalToken = quote.approval_token as string | null | undefined;
+  const approvalData =
+    (quoteStatus === "sent" || quoteStatus === "accepted") && approvalToken
+      ? {
+          approval_token: approvalToken,
+          approval_link: `${APP_URL}/o/${approvalToken}`,
+          sent_at: quote.sent_at ?? null,
+        }
+      : {};
+
   return NextResponse.json({
     quote: {
       id: quote.id,
@@ -100,6 +118,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
       show_margin_on_pdf: quote.show_margin_on_pdf !== false,
       customer: quote.customers ?? null,
       versions,
+      ...approvalData,
     },
   });
 }
@@ -131,7 +150,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   // Verificar que o quote pertence ao usuário
   const { data: quote, error: quoteError } = await supabase
     .from("quotes")
-    .select("id, user_id")
+    .select("id, user_id, approval_token, created_at")
     .eq("id", quoteId)
     .eq("user_id", user.id)
     .single();
@@ -176,6 +195,47 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
   }
 
+  // Gerar e persistir approval_token quando status muda para 'sent'
+  let approvalToken: string | null = (quote.approval_token as string | null) ?? null;
+  let approvalLink: string | null = null;
+
+  if (status === "sent") {
+    if (!approvalToken) {
+      // Buscar validity_days do perfil do usuário (default 15 se null)
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("quote_validity_days")
+        .eq("user_id", user.id)
+        .single();
+
+      const validityDays = (profile?.quote_validity_days as number | null | undefined) ?? 15;
+
+      const createdAt = new Date(quote.created_at as string);
+      const expiresAt = new Date(createdAt.getTime() + validityDays * 24 * 60 * 60 * 1000);
+
+      const newToken = crypto.randomUUID();
+
+      // Usar WHERE approval_token IS NULL para prevenir race condition
+      const { error: tokenError } = await supabase
+        .from("quotes")
+        .update({
+          approval_token: newToken,
+          approval_token_expires_at: expiresAt.toISOString(),
+          sent_at: new Date().toISOString(),
+        })
+        .eq("id", quoteId)
+        .is("approval_token", null);
+
+      if (tokenError) {
+        return NextResponse.json({ error: tokenError.message }, { status: 500 });
+      }
+
+      approvalToken = newToken;
+    }
+
+    approvalLink = `${APP_URL}/o/${approvalToken}`;
+  }
+
   // Atualizar margem de lucro na versão
   if (typeof profit_margin_pct === "number") {
     if (profit_margin_pct < 0 || profit_margin_pct > 1000) {
@@ -208,7 +268,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
   }
 
-  return NextResponse.json({ success: true });
+  const response: Record<string, unknown> = { success: true };
+  if (status === "sent" && approvalToken) {
+    response.approval_token = approvalToken;
+    response.approval_link = approvalLink;
+  }
+
+  return NextResponse.json(response);
 }
 
 /**

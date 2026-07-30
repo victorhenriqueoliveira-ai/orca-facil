@@ -87,6 +87,15 @@ describe("middleware", () => {
 
       expect(res.headers.get("location")).toBeNull();
     });
+
+    it("permite /o/[token] sem sessão (rota pública de aprovação)", async () => {
+      mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
+      const req = criarRequest("/o/abc123-token-uuid");
+      const res = await middleware(req);
+
+      expect(res.status).not.toBe(307);
+      expect(res.headers.get("location")).toBeNull();
+    });
   });
 
   describe("rotas protegidas — sem sessão deve redirecionar para /login", () => {

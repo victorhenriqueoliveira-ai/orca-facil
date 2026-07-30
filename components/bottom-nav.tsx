@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AlertsBadge } from "@/components/alerts-badge";
 
 const ITENS_NAV = [
   {
@@ -120,13 +121,20 @@ export function BottomNav({ className }: BottomNavProps) {
                 href={href}
                 aria-label={label}
                 aria-current={ativo ? "page" : undefined}
-                className={`flex flex-col items-center justify-center gap-1 h-full text-xs font-medium transition-colors ${
+                className={`relative flex flex-col items-center justify-center gap-1 h-full text-xs font-medium transition-colors ${
                   ativo
                     ? "text-brand-primary"
                     : "text-text-base/50 hover:text-text-base"
                 }`}
               >
-                {icone}
+                <span className="relative inline-flex">
+                  {icone}
+                  {href === "/orcamentos" && (
+                    <span className="absolute -top-1 -right-2">
+                      <AlertsBadge />
+                    </span>
+                  )}
+                </span>
                 <span>{label}</span>
               </Link>
             </li>

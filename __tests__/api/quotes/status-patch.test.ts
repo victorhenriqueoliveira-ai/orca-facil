@@ -33,7 +33,7 @@ function makeParams(id: string) {
 const QUOTE_ID = "quote-uuid";
 
 function buildPatchSupabase({
-  quoteData = { id: QUOTE_ID, user_id: "user-1" },
+  quoteData = { id: QUOTE_ID, user_id: "user-1", approval_token: null, created_at: "2026-01-01T00:00:00.000Z" },
   quoteError = null,
   updateError = null,
 }: {
@@ -52,7 +52,14 @@ function buildPatchSupabase({
           }),
         }),
         update: vi.fn().mockReturnValue({
-          eq: vi.fn().mockResolvedValue({ error: updateError }),
+          eq: vi.fn().mockReturnValue({
+            // Suporte a .eq().is() para update de approval_token
+            is: vi.fn().mockResolvedValue({ error: updateError }),
+            // Suporte a .eq() final (para update de status sem token)
+            mockResolvedValue: vi.fn().mockResolvedValue({ error: updateError }),
+          }),
+          // Suporte a .eq() direto (para update de campos simples)
+          mockResolvedValue: vi.fn().mockResolvedValue({ error: updateError }),
         }),
       };
     }
@@ -62,6 +69,16 @@ function buildPatchSupabase({
         update: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
             eq: vi.fn().mockResolvedValue({ error: null }),
+          }),
+        }),
+      };
+    }
+
+    if (table === "profiles") {
+      return {
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: { quote_validity_days: 15 }, error: null }),
           }),
         }),
       };

@@ -1,6 +1,10 @@
 import { Resend } from "resend";
 import { buildTrialReminderHtml, type TrialReminderData } from "./templates/trial-reminder";
 
+export { sendQuoteApproved, type QuoteApprovedData } from "./templates/quote-approved";
+export { sendQuoteFollowup, type QuoteFollowupData } from "./templates/quote-followup";
+export { sendQuoteExpiring, type QuoteExpiringData } from "./templates/quote-expiring";
+
 export interface SendTrialReminderParams {
   to: string;
   data: TrialReminderData;

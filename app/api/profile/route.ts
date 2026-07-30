@@ -21,7 +21,7 @@ export async function GET() {
   const { data: profile, error } = await supabase
     .from("profiles")
     .select(
-      "id, business_name, city, phone, pix_key, bank_info, logo_url, profit_margin_pct, quote_validity_days, updated_at"
+      "id, business_name, city, phone, pix_key, bank_info, logo_url, profit_margin_pct, quote_validity_days, followup_days, price_alert_days, sheet_waste_pct, whatsapp_message_template, show_cnpj_on_pdf, cpf_cnpj, updated_at"
     )
     .eq("id", user.id)
     .single();
@@ -93,6 +93,11 @@ export async function PATCH(request: NextRequest) {
     "quote_validity_days",
     "profit_margin_pct",
     "logo_url",
+    "followup_days",
+    "price_alert_days",
+    "sheet_waste_pct",
+    "whatsapp_message_template",
+    "show_cnpj_on_pdf",
   ] as const;
 
   const updates: Record<string, unknown> = {};
@@ -119,6 +124,46 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json(
         { error: "quote_validity_days deve ser um inteiro >= 1" },
         { status: 400 }
+      );
+    }
+  }
+
+  if ("followup_days" in updates) {
+    const v = Number(updates.followup_days);
+    if (!Number.isInteger(v) || v < 1 || v > 30) {
+      return NextResponse.json(
+        { error: "followup_days deve ser inteiro entre 1 e 30" },
+        { status: 422 }
+      );
+    }
+  }
+
+  if ("price_alert_days" in updates) {
+    const v = Number(updates.price_alert_days);
+    if (!Number.isInteger(v) || v < 7 || v > 365) {
+      return NextResponse.json(
+        { error: "price_alert_days deve ser inteiro entre 7 e 365" },
+        { status: 422 }
+      );
+    }
+  }
+
+  if ("sheet_waste_pct" in updates) {
+    const v = Number(updates.sheet_waste_pct);
+    if (isNaN(v) || v < 0 || v > 50) {
+      return NextResponse.json(
+        { error: "sheet_waste_pct deve ser número entre 0 e 50" },
+        { status: 422 }
+      );
+    }
+  }
+
+  if ("whatsapp_message_template" in updates) {
+    const v = updates.whatsapp_message_template;
+    if (typeof v === "string" && v.length > 1000) {
+      return NextResponse.json(
+        { error: "whatsapp_message_template deve ter no máximo 1000 caracteres" },
+        { status: 422 }
       );
     }
   }

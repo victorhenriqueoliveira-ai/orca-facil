@@ -30,6 +30,12 @@ interface Perfil {
   logo_url: string | null;
   profit_margin_pct: number | null;
   quote_validity_days: number | null;
+  followup_days: number | null;
+  price_alert_days: number | null;
+  sheet_waste_pct: number | null;
+  whatsapp_message_template: string | null;
+  show_cnpj_on_pdf: boolean | null;
+  cpf_cnpj: string | null;
 }
 
 export default function ConfiguracoesPage() {
@@ -49,6 +55,7 @@ export default function ConfiguracoesPage() {
   const [cancelando, setCancelando] = useState(false);
   const [cancelado, setCancelado] = useState(false);
   const [erroCancelamento, setErroCancelamento] = useState<string | null>(null);
+  const [confirmarCancelamento, setConfirmarCancelamento] = useState(false);
   const [assinatura, setAssinatura] = useState<AssinaturaDetalhes | null>(null);
 
   const [businessName, setBusinessName] = useState("");
@@ -58,6 +65,11 @@ export default function ConfiguracoesPage() {
   const [bankInfo, setBankInfo] = useState("");
   const [profitMarginPct, setProfitMarginPct] = useState("30");
   const [quoteValidityDays, setQuoteValidityDays] = useState("15");
+  const [followupDays, setFollowupDays] = useState("5");
+  const [priceAlertDays, setPriceAlertDays] = useState("60");
+  const [sheetWastePct, setSheetWastePct] = useState("15");
+  const [whatsappMessageTemplate, setWhatsappMessageTemplate] = useState("");
+  const [showCnpjOnPdf, setShowCnpjOnPdf] = useState(false);
 
   const inputFileRef = useRef<HTMLInputElement>(null);
 
@@ -98,6 +110,11 @@ export default function ConfiguracoesPage() {
         setBankInfo(p.bank_info ?? "");
         setProfitMarginPct(String(p.profit_margin_pct ?? 30));
         setQuoteValidityDays(String(p.quote_validity_days ?? 15));
+        setFollowupDays(String(p.followup_days ?? 5));
+        setPriceAlertDays(String(p.price_alert_days ?? 60));
+        setSheetWastePct(String(p.sheet_waste_pct ?? 15));
+        setWhatsappMessageTemplate(p.whatsapp_message_template ?? "");
+        setShowCnpjOnPdf(p.show_cnpj_on_pdf ?? false);
       }
 
       if (dados.logoSignedUrl) {
@@ -127,6 +144,11 @@ export default function ConfiguracoesPage() {
           bank_info: bankInfo || null,
           profit_margin_pct: Number(profitMarginPct),
           quote_validity_days: Number(quoteValidityDays),
+          followup_days: Number(followupDays),
+          price_alert_days: Number(priceAlertDays),
+          sheet_waste_pct: Number(sheetWastePct),
+          whatsapp_message_template: whatsappMessageTemplate || null,
+          show_cnpj_on_pdf: showCnpjOnPdf,
         }),
       });
 
@@ -188,14 +210,6 @@ export default function ConfiguracoesPage() {
   }
 
   async function handleCancelarAssinatura() {
-    if (
-      !window.confirm(
-        "Tem certeza que deseja cancelar sua assinatura? Você perderá o acesso completo ao final do período atual."
-      )
-    ) {
-      return;
-    }
-
     setCancelando(true);
     setErroCancelamento(null);
 
@@ -474,6 +488,142 @@ export default function ConfiguracoesPage() {
           </div>
         </section>
 
+        {/* Seção: Documentos e PDF */}
+        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+          <h2 className="text-lg font-semibold text-gray-800">
+            Documentos e PDF
+          </h2>
+          <p className="text-sm text-gray-500">
+            Informações exibidas no PDF dos orçamentos enviados ao cliente.
+          </p>
+
+          <div className="flex items-center justify-between py-1">
+            <div>
+              <p className="text-sm font-medium text-gray-700">
+                Exibir CNPJ/CPF no orçamento
+              </p>
+              {perfil?.cpf_cnpj ? (
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {perfil.cpf_cnpj}
+                </p>
+              ) : (
+                <p className="text-xs text-amber-600 mt-0.5">
+                  Nenhum CNPJ/CPF cadastrado ainda.
+                </p>
+              )}
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={showCnpjOnPdf}
+              onClick={() => setShowCnpjOnPdf((v) => !v)}
+              disabled={!perfil?.cpf_cnpj}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary/50 disabled:opacity-40 disabled:cursor-not-allowed ${
+                showCnpjOnPdf ? "bg-brand-primary" : "bg-gray-200"
+              }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                  showCnpjOnPdf ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+        </section>
+
+        {/* Seção: Notificações e Automação */}
+        <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+          <h2 className="text-lg font-semibold text-gray-800">
+            Notificações e Automação
+          </h2>
+          <p className="text-sm text-gray-500">
+            Configure prazos e mensagens para follow-up automático.
+          </p>
+
+          <div className="space-y-4">
+            <div>
+              <label
+                htmlFor="followup_days"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Dias para follow-up automático
+              </label>
+              <input
+                id="followup_days"
+                type="number"
+                min="1"
+                max="30"
+                step="1"
+                value={followupDays}
+                onChange={(e) => setFollowupDays(e.target.value)}
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-400 mt-1">Entre 1 e 30 dias</p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="price_alert_days"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Alertar preços não atualizados há (dias)
+              </label>
+              <input
+                id="price_alert_days"
+                type="number"
+                min="7"
+                max="365"
+                step="1"
+                value={priceAlertDays}
+                onChange={(e) => setPriceAlertDays(e.target.value)}
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-400 mt-1">Entre 7 e 365 dias</p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="sheet_waste_pct"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Perda de chapa (%)
+              </label>
+              <input
+                id="sheet_waste_pct"
+                type="number"
+                min="0"
+                max="50"
+                step="0.01"
+                value={sheetWastePct}
+                onChange={(e) => setSheetWastePct(e.target.value)}
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-400 mt-1">Entre 0 e 50%</p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="whatsapp_message_template"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Modelo de mensagem WhatsApp
+              </label>
+              <textarea
+                id="whatsapp_message_template"
+                value={whatsappMessageTemplate}
+                onChange={(e) => setWhatsappMessageTemplate(e.target.value)}
+                placeholder="Ex: Olá {nome}, seu orçamento está disponível..."
+                rows={4}
+                maxLength={1000}
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-transparent resize-none"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                {whatsappMessageTemplate.length}/1000 caracteres
+              </p>
+            </div>
+          </div>
+        </section>
+
         <button
           type="submit"
           disabled={salvando}
@@ -605,14 +755,41 @@ export default function ConfiguracoesPage() {
                 {erroCancelamento}
               </div>
             )}
-            <button
-              type="button"
-              onClick={handleCancelarAssinatura}
-              disabled={cancelando}
-              className="text-sm text-red-600 border border-red-300 rounded-lg px-4 py-2 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {cancelando ? "Cancelando..." : "Cancelar assinatura"}
-            </button>
+
+            {confirmarCancelamento ? (
+              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-4 space-y-3">
+                <p className="text-sm font-medium text-red-800">Tem certeza?</p>
+                <p className="text-sm text-red-700">
+                  Você perderá o acesso completo ao final do período atual.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmarCancelamento(false)}
+                    disabled={cancelando}
+                    className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    Manter assinatura
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelarAssinatura}
+                    disabled={cancelando}
+                    className="flex-1 text-sm bg-red-600 text-white rounded-lg px-3 py-2 hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {cancelando ? "Cancelando..." : "Confirmar cancelamento"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmarCancelamento(true)}
+                className="text-sm text-red-600 border border-red-300 rounded-lg px-4 py-2 hover:bg-red-50 transition-colors"
+              >
+                Cancelar assinatura
+              </button>
+            )}
           </div>
         )}
 

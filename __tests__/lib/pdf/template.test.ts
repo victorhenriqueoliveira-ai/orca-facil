@@ -395,4 +395,169 @@ describe("generatePdfHtml", () => {
     // Total row should be present
     expect(html).toContain("total-row");
   });
+
+  // ----------------------------------------------------------------
+  // Fotos de ambiente no PDF (task_09)
+  // ----------------------------------------------------------------
+
+  it("modo detalhado inclui tag <img> com URL assinada quando room.photos tem itens", () => {
+    const data = makeQuoteData({
+      versions: [
+        {
+          id: "v1",
+          name: "Padrão",
+          profit_margin_pct: 0,
+          rooms: [
+            {
+              id: "r1",
+              name: "Sala",
+              items: [{ id: "i1", name: "Armário", unit: "un", unit_price: 500, quantity: 1 }],
+              photos: [
+                "https://signed.supabase.co/storage/v1/photo1.jpg",
+                "https://signed.supabase.co/storage/v1/photo2.jpg",
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    const html = generatePdfHtml(data, "detailed");
+
+    expect(html).toContain("<img");
+    expect(html).toContain("https://signed.supabase.co/storage/v1/photo1.jpg");
+    expect(html).toContain("https://signed.supabase.co/storage/v1/photo2.jpg");
+  });
+
+  it("modo detalhado NÃO inclui seção de fotos quando room.photos está vazio", () => {
+    const data = makeQuoteData({
+      versions: [
+        {
+          id: "v1",
+          name: "Padrão",
+          profit_margin_pct: 0,
+          rooms: [
+            {
+              id: "r1",
+              name: "Sala",
+              items: [{ id: "i1", name: "Armário", unit: "un", unit_price: 500, quantity: 1 }],
+              photos: [],
+            },
+          ],
+        },
+      ],
+    });
+
+    const html = generatePdfHtml(data, "detailed");
+
+    // Não deve conter a classe room-photos na DOM (só no CSS é ok)
+    expect(html).not.toContain('class="room-photos"');
+    expect(html).not.toContain('class="room-photos-title"');
+  });
+
+  it("modo detalhado NÃO inclui seção de fotos quando room.photos é undefined", () => {
+    const data = makeQuoteData({
+      versions: [
+        {
+          id: "v1",
+          name: "Padrão",
+          profit_margin_pct: 0,
+          rooms: [
+            {
+              id: "r1",
+              name: "Sala",
+              items: [{ id: "i1", name: "Armário", unit: "un", unit_price: 500, quantity: 1 }],
+              // photos não definido
+            },
+          ],
+        },
+      ],
+    });
+
+    const html = generatePdfHtml(data, "detailed");
+
+    expect(html).not.toContain('class="room-photos"');
+  });
+
+  it("modo resumido NÃO inclui seção de fotos mesmo quando room.photos tem itens", () => {
+    const data = makeQuoteData({
+      versions: [
+        {
+          id: "v1",
+          name: "Padrão",
+          profit_margin_pct: 0,
+          rooms: [
+            {
+              id: "r1",
+              name: "Sala",
+              items: [{ id: "i1", name: "Armário", unit: "un", unit_price: 500, quantity: 1 }],
+              photos: ["https://signed.url/photo1.jpg"],
+            },
+          ],
+        },
+      ],
+    });
+
+    const html = generatePdfHtml(data, "summary");
+
+    // Modo resumo não deve incluir fotos
+    expect(html).not.toContain('class="room-photos"');
+    expect(html).not.toContain("https://signed.url/photo1.jpg");
+  });
+
+  it("modo detalhado inclui máximo de 3 fotos mesmo quando room.photos tem mais", () => {
+    const data = makeQuoteData({
+      versions: [
+        {
+          id: "v1",
+          name: "Padrão",
+          profit_margin_pct: 0,
+          rooms: [
+            {
+              id: "r1",
+              name: "Sala",
+              items: [],
+              photos: [
+                "https://signed.url/p1.jpg",
+                "https://signed.url/p2.jpg",
+                "https://signed.url/p3.jpg",
+                "https://signed.url/p4.jpg", // Esta não deve aparecer
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    const html = generatePdfHtml(data, "detailed");
+
+    expect(html).toContain("https://signed.url/p1.jpg");
+    expect(html).toContain("https://signed.url/p2.jpg");
+    expect(html).toContain("https://signed.url/p3.jpg");
+    expect(html).not.toContain("https://signed.url/p4.jpg");
+  });
+
+  it("modo detalhado inclui título 'Fotos de referência' quando há fotos", () => {
+    const data = makeQuoteData({
+      versions: [
+        {
+          id: "v1",
+          name: "Padrão",
+          profit_margin_pct: 0,
+          rooms: [
+            {
+              id: "r1",
+              name: "Sala",
+              items: [],
+              photos: ["https://signed.url/p1.jpg"],
+            },
+          ],
+        },
+      ],
+    });
+
+    const html = generatePdfHtml(data, "detailed");
+
+    expect(html).toContain("Fotos de referência");
+  });
 });

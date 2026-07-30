@@ -11,6 +11,7 @@ export interface CatalogItem {
   is_active: boolean;
   image_url?: string | null;
   created_at: string;
+  price_updated_at?: string | null;
 }
 
 export interface CatalogItemFormProps {

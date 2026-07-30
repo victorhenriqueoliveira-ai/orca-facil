@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { diasDesdeAtualizacao, precoDesatualizado } from "@/lib/catalog/price-alert";
 
 export interface CatalogItem {
   id: string;
@@ -8,6 +9,7 @@ export interface CatalogItem {
   type: string;
   unit: string;
   unit_price: number;
+  price_updated_at?: string | null;
 }
 
 export interface RoomItemFormData {
@@ -22,17 +24,23 @@ export interface RoomItemFormData {
 export interface RoomItemFormProps {
   onSubmit: (data: RoomItemFormData) => Promise<void>;
   onCancel: () => void;
+  priceAlertDays?: number;
 }
+
+const PRICE_ALERT_DAYS_DEFAULT = 60;
 
 /**
  * Formulário para adicionar item a um ambiente.
  * Permite buscar no catálogo próprio ou criar item avulso.
  */
-export function RoomItemForm({ onSubmit, onCancel }: RoomItemFormProps) {
+export function RoomItemForm({ onSubmit, onCancel, priceAlertDays: priceAlertDaysProp }: RoomItemFormProps) {
   const [mode, setMode] = useState<"catalog" | "custom">("catalog");
   const [catalogItems, setCatalogItems] = useState<CatalogItem[]>([]);
   const [selectedCatalogItem, setSelectedCatalogItem] = useState<CatalogItem | null>(null);
   const [catalogLoading, setCatalogLoading] = useState(false);
+  const [priceAlertDays, setPriceAlertDays] = useState<number>(
+    priceAlertDaysProp ?? PRICE_ALERT_DAYS_DEFAULT
+  );
 
   // Campos do item avulso / editáveis
   const [name, setName] = useState("");
@@ -54,6 +62,21 @@ export function RoomItemForm({ onSubmit, onCancel }: RoomItemFormProps) {
         .finally(() => setCatalogLoading(false));
     }
   }, [mode]);
+
+  // Busca price_alert_days do perfil somente se não foi passado como prop
+  useEffect(() => {
+    if (priceAlertDaysProp !== undefined) return;
+    fetch("/api/profile")
+      .then((r) => r.json())
+      .then((data) => {
+        if (typeof data?.price_alert_days === "number") {
+          setPriceAlertDays(data.price_alert_days);
+        }
+      })
+      .catch(() => {
+        // mantém o default se falhar
+      });
+  }, [priceAlertDaysProp]);
 
   function selectCatalogItem(item: CatalogItem) {
     setSelectedCatalogItem(item);
@@ -179,20 +202,36 @@ export function RoomItemForm({ onSubmit, onCancel }: RoomItemFormProps) {
       {(mode === "custom" || selectedCatalogItem) && (
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           {selectedCatalogItem && (
-            <div className="flex items-center justify-between bg-blue-50 rounded-lg px-3 py-2">
-              <p className="text-sm font-medium text-blue-800">{selectedCatalogItem.name}</p>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedCatalogItem(null);
-                  setName("");
-                  setUnitPrice("0");
-                }}
-                className="text-xs text-blue-600 hover:text-blue-800"
-              >
-                Trocar
-              </button>
-            </div>
+            <>
+              <div className="flex items-center justify-between bg-blue-50 rounded-lg px-3 py-2">
+                <p className="text-sm font-medium text-blue-800">{selectedCatalogItem.name}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCatalogItem(null);
+                    setName("");
+                    setUnitPrice("0");
+                  }}
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                >
+                  Trocar
+                </button>
+              </div>
+              {/* Aviso de preço desatualizado */}
+              {precoDesatualizado(selectedCatalogItem.price_updated_at, priceAlertDays) && (
+                <div
+                  className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  <p className="text-xs text-amber-600">
+                    O preço deste item foi atualizado há{" "}
+                    {diasDesdeAtualizacao(selectedCatalogItem.price_updated_at)} dias. Verifique
+                    antes de continuar.
+                  </p>
+                </div>
+              )}
+            </>
           )}
 
           {mode === "custom" && (
