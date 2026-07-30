@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useSubscription } from "@/components/subscription-provider";
@@ -224,7 +224,7 @@ export default function DashboardPage() {
             onClick={() => setShowGuia(false)}
           >
             <div
-              className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 space-y-5 max-h-[85vh] overflow-y-auto"
+              className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-9 space-y-5 max-h-[85vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between">

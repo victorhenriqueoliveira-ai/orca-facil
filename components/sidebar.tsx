@@ -159,11 +159,11 @@ export function Sidebar({ className = "" }: SidebarProps) {
       className={`flex-col w-64 h-screen sticky top-0 overflow-y-auto bg-white border-r border-border ${className}`}
     >
       {/* Logo */}
-      <div className="px-6 py-5 border-b border-border">
+      <div className="border-b border-border">
         <img
           src="/orca_facil.png"
           alt="Orça Fácil"
-          className="h-20 w-auto"
+          className="w-auto"
         />
       </div>
 
