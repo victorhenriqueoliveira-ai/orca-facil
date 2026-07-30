@@ -108,7 +108,7 @@ export default function DashboardPage() {
   }, [acabouDePagar]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-6 py-12">
+    <div className="flex flex-col items-center justify-center min-h-full px-4 py-12">
       <div className="max-w-md w-full text-center space-y-8">
 
         {confirmado && (
@@ -213,8 +213,8 @@ export default function DashboardPage() {
         <div className="border border-border rounded-2xl p-5 space-y-4 text-left">
           <h2 className="text-base font-semibold text-text-base">Performance do período</h2>
 
-          <div className="flex gap-2">
-            <div className="flex-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
               <label className="block text-xs text-text-base/50 mb-1">De</label>
               <input
                 type="date"
@@ -223,7 +223,7 @@ export default function DashboardPage() {
                 className="w-full border border-border rounded-lg px-3 py-2 text-sm text-text-base bg-bg-base focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
               />
             </div>
-            <div className="flex-1">
+            <div>
               <label className="block text-xs text-text-base/50 mb-1">Até</label>
               <input
                 type="date"

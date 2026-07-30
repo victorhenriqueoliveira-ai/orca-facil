@@ -4,7 +4,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { getSubscriptionStatus } from "@/lib/subscription/get-status";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_SIZE = 5 * 1024 * 1024;
+const MAX_SIZE = 4 * 1024 * 1024; // 4 MB — abaixo do limite de 4,5 MB da Vercel
 
 export async function POST(
   request: NextRequest,

@@ -109,8 +109,11 @@ export default function CatalogoItemPage({
       form.append("image", file);
       const res = await fetch(`/api/catalog/${itemId}/image`, { method: "POST", body: form });
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error ?? "Erro ao enviar imagem");
+        const err = await res.json().catch(() => ({}));
+        throw new Error(
+          (err as { error?: string }).error ??
+            (res.status === 413 ? "Imagem muito grande. Máximo: 4 MB" : "Erro ao enviar imagem")
+        );
       }
       const data = await res.json();
       setItem((prev) => prev ? { ...prev, image_url: data.image_url, imageSignedUrl: data.imageSignedUrl } : prev);
