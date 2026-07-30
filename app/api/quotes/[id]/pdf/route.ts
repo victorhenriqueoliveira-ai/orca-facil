@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getSubscriptionStatus } from "@/lib/subscription/get-status";
 import { generatePdfHtml } from "@/lib/pdf/template";
+import { formatCpfCnpj } from "@/lib/utils/cpf-cnpj";
 import { generatePdfFromHtml } from "@/lib/pdf/generate";
 import type { PdfMode, PdfQuoteData, PdfRoom, PdfVersion } from "@/lib/pdf/template";
 
@@ -262,7 +263,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       pixKey: profile?.pix_key ?? null,
       bankInfo: profile?.bank_info ?? null,
       logoUrl: logoSignedUrl,
-      cpfCnpj: profile?.cpf_cnpj ?? null,
+      cpfCnpj: profile?.cpf_cnpj ? formatCpfCnpj(profile.cpf_cnpj) : null,
       showCnpj: profile?.show_cnpj_on_pdf ?? false,
     },
     versions,
