@@ -330,7 +330,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const { data: profileData } = await serviceClient
       .from("profiles")
       .select("quote_validity_days")
-      .eq("user_id", user.id)
+      .eq("id", user.id)
       .single();
 
     const validityDays = (profileData?.quote_validity_days as number | null) ?? 15;

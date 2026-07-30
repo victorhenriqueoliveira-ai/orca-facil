@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { Metadata } from "next";
 
 /**
  * Página de conversão de trial → assinatura paga.
@@ -11,6 +10,7 @@ import type { Metadata } from "next";
 export default function AssinarPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aceitouTermos, setAceitouTermos] = useState(false);
 
   async function handleCheckout() {
     setLoading(true);
@@ -100,11 +100,31 @@ export default function AssinarPage() {
           </div>
         )}
 
+        {/* Aceite dos termos */}
+        <label className="flex items-start gap-3 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={aceitouTermos}
+            onChange={(e) => setAceitouTermos(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-brand-primary flex-shrink-0"
+          />
+          <span className="text-sm text-text-base/70 leading-snug">
+            Li e aceito os{" "}
+            <a href="/termos" target="_blank" className="text-brand-primary underline hover:text-brand-primary/80">
+              Termos de Uso
+            </a>{" "}
+            e a{" "}
+            <a href="/privacidade" target="_blank" className="text-brand-primary underline hover:text-brand-primary/80">
+              Política de Privacidade
+            </a>
+          </span>
+        </label>
+
         {/* CTA */}
         <button
           type="button"
           onClick={handleCheckout}
-          disabled={loading}
+          disabled={loading || !aceitouTermos}
           aria-label="Assinar agora"
           className="w-full bg-brand-primary text-white text-xl font-semibold py-5 px-8 rounded-2xl shadow-lg hover:bg-brand-primary/90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatCpfCnpj, cleanCpfCnpj, validateCpfCnpj, cpfCnpjLabel } from "@/lib/utils/cpf-cnpj";
+import { createClient } from "@/lib/supabase/client";
 
 export default function PaginaCadastro() {
   const [nome, setNome] = useState("");
@@ -16,6 +17,7 @@ export default function PaginaCadastro() {
   const [erroSenha, setErroSenha] = useState<string | null>(null);
   const [erroConfirmacao, setErroConfirmacao] = useState<string | null>(null);
   const [erroCpfCnpj, setErroCpfCnpj] = useState<string | null>(null);
+  const [aceitouTermos, setAceitouTermos] = useState(false);
 
   function validarSenha(value: string): string | null {
     if (value.length > 0 && value.length < 8) {
@@ -71,32 +73,39 @@ export default function PaginaCadastro() {
           email: email.trim(),
           password: senha,
           cpfCnpj: cpfCnpj,
+          termsAccepted: true,
         }),
       });
 
-      if (!res.ok) {
-        const body = await res.json();
-        setErro(body.error ?? "Ocorreu um erro inesperado. Tente novamente.");
+      let body: Record<string, unknown> = {};
+      try {
+        body = await res.json();
+      } catch {
+        setErro("Erro inesperado do servidor. Tente novamente.");
         return;
       }
 
-      const { createClient } = await import("@/lib/supabase/client");
-      const supabase = createClient();
+      if (!res.ok) {
+        setErro((body.error as string) ?? "Ocorreu um erro inesperado. Tente novamente.");
+        return;
+      }
 
+      const supabase = createClient();
       const { error: loginError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: senha,
       });
 
       if (loginError) {
-        setErro("Conta criada! Faça login para entrar.");
+        setErro("Conta criada com sucesso! Faça login para entrar.");
         window.location.href = "/login";
         return;
       }
 
       window.location.href = "/dashboard";
-    } catch {
-      setErro("Ocorreu um erro inesperado. Tente novamente.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erro inesperado";
+      setErro(msg);
     } finally {
       setCarregando(false);
     }
@@ -108,12 +117,17 @@ export default function PaginaCadastro() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg-base p-4">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-text-base">Orça Fácil</h1>
-          <p className="mt-2 text-text-base/70">Crie sua conta — 30 dias grátis</p>
-        </div>
-
         <div className="bg-white rounded-2xl shadow-sm border border-border p-6">
+        <div className="text-center">
+            <div className="flex items-center justify-center sm:gap-3">
+              <img
+                src="/orca_facil.png"
+                alt="Orça Fácil"
+                className="h-[100px] w-auto sm:h-[100px]"
+              />
+            </div>
+            <p className="mt-2 text-text-base/70">Crie sua conta — 30 dias grátis</p>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               id="nome"
@@ -197,6 +211,25 @@ export default function PaginaCadastro() {
               </div>
             )}
 
+            <label className="flex items-start gap-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={aceitouTermos}
+                onChange={(e) => setAceitouTermos(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-brand-primary flex-shrink-0"
+              />
+              <span className="text-sm text-text-base/70 leading-snug">
+                Li e aceito os{" "}
+                <a href="/termos" target="_blank" className="text-brand-primary underline hover:text-brand-primary/80">
+                  Termos de Uso
+                </a>{" "}
+                e a{" "}
+                <a href="/privacidade" target="_blank" className="text-brand-primary underline hover:text-brand-primary/80">
+                  Política de Privacidade
+                </a>
+              </span>
+            </label>
+
             <Button
               type="submit"
               variant="primary"
@@ -207,7 +240,8 @@ export default function PaginaCadastro() {
                 !email.trim() ||
                 !cpfCnpj ||
                 !senha ||
-                !confirmaSenha
+                !confirmaSenha ||
+                !aceitouTermos
               }
               className="w-full"
             >

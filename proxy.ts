@@ -12,6 +12,8 @@ const ROTAS_PUBLICAS = [
   "/api/auth/callback",
   "/api/auth/logout",
   "/o",
+  "/termos",
+  "/privacidade",
 ];
 
 export async function proxy(request: NextRequest) {

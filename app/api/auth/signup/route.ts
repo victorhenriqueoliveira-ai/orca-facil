@@ -3,10 +3,27 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { cleanCpfCnpj, validateCpfCnpj } from "@/lib/utils/cpf-cnpj";
 
 export async function POST(request: Request) {
-  const { name, email, password, cpfCnpj } = await request.json();
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Body inválido." }, { status: 400 });
+  }
+
+  const { name, email, password, cpfCnpj, termsAccepted } = body as {
+    name?: string;
+    email?: string;
+    password?: string;
+    cpfCnpj?: string;
+    termsAccepted?: boolean;
+  };
 
   if (!name || !email || !password || !cpfCnpj) {
     return NextResponse.json({ error: "Campos obrigatórios ausentes." }, { status: 400 });
+  }
+
+  if (!termsAccepted) {
+    return NextResponse.json({ error: "É necessário aceitar os Termos de Uso." }, { status: 400 });
   }
 
   const digits = cleanCpfCnpj(cpfCnpj);
@@ -60,11 +77,19 @@ export async function POST(request: Request) {
     );
   }
 
-  // Salvar CPF/CNPJ no perfil (criado pelo trigger)
-  await service
+  // Salvar nome, CPF/CNPJ e aceite dos termos no perfil (criado pelo trigger)
+  const { error: profileError } = await service
     .from("profiles")
-    .update({ cpf_cnpj: digits })
+    .update({
+      business_name: name.trim(),
+      cpf_cnpj: digits,
+      terms_accepted_at: new Date().toISOString(),
+    })
     .eq("id", data.user.id);
+
+  if (profileError) {
+    console.error("[signup] Erro ao atualizar perfil:", profileError.message);
+  }
 
   return NextResponse.json({ ok: true });
 }
