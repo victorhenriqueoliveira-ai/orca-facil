@@ -181,13 +181,17 @@ export function StepSend({
       // Atualiza a mensagem do WhatsApp com o link real de aprovação
       if (data.approval_link) {
         setLiveApprovalLink(data.approval_link);
-        setEditedMessage(
-          interpolateTemplate(rawTemplate, {
-            nome_cliente: data.customer_name ?? customerName,
-            numero_orcamento: data.quote_number ?? quoteNumber,
-            link_aprovacao: data.approval_link,
-          })
-        );
+        const hasPlaceholder = rawTemplate.includes("{{link_aprovacao}}");
+        const interpolated = interpolateTemplate(rawTemplate, {
+          nome_cliente: data.customer_name ?? customerName,
+          numero_orcamento: data.quote_number ?? quoteNumber,
+          link_aprovacao: data.approval_link,
+        });
+        // Se o template não tinha o placeholder, adiciona o link no final
+        const finalMessage = hasPlaceholder
+          ? interpolated
+          : `${interpolated}\n\nLink para aprovação:\n${data.approval_link}`;
+        setEditedMessage(finalMessage);
       }
 
       setState("done");
@@ -315,25 +319,36 @@ export function StepSend({
               className="w-full text-sm text-gray-800 border border-gray-200 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary"
               placeholder="Digite sua mensagem para o cliente..."
             />
-            {!approvalLink && (
+            {!rawTemplate.includes("{{link_aprovacao}}") && (
               <p className="text-xs text-amber-600 mt-1">
-                ⚠️ Link de aprovação não disponível ainda.
+                ⚠️ Seu modelo não contém <code className="bg-amber-100 px-1 rounded">{"{{link_aprovacao}}"}</code>. O link será adicionado automaticamente ao final da mensagem após gerar o PDF.
               </p>
             )}
-            <button
-              type="button"
-              onClick={handleSaveTemplate}
-              disabled={saveState === "saving"}
-              className="mt-2 text-xs text-brand-primary hover:text-brand-primary/80 underline transition-colors disabled:opacity-50"
-            >
-              {saveState === "saving"
-                ? "Salvando..."
-                : saveState === "saved"
-                  ? "✓ Modelo salvo!"
-                  : saveState === "error"
-                    ? "Erro ao salvar"
-                    : "Salvar como meu modelo"}
-            </button>
+            <div className="mt-2 flex items-center gap-3 flex-wrap">
+              <button
+                type="button"
+                onClick={handleSaveTemplate}
+                disabled={saveState === "saving"}
+                className="text-xs text-brand-primary hover:text-brand-primary/80 underline transition-colors disabled:opacity-50"
+              >
+                {saveState === "saving"
+                  ? "Salvando..."
+                  : saveState === "saved"
+                    ? "✓ Modelo salvo!"
+                    : saveState === "error"
+                      ? "Erro ao salvar"
+                      : "Salvar como meu modelo"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRawTemplate(DEFAULT_WHATSAPP_TEMPLATE);
+                }}
+                className="text-xs text-gray-400 hover:text-gray-600 underline transition-colors"
+              >
+                Restaurar padrão
+              </button>
+            </div>
           </div>
         </>
       )}
@@ -379,6 +394,12 @@ export function StepSend({
             <p className="text-xs text-green-600 mt-1">
               Link válido por 7 dias.
             </p>
+          </div>
+
+          {/* Prévia da mensagem que será enviada */}
+          <div className="border border-gray-200 rounded-xl bg-white p-4">
+            <p className="text-xs font-medium text-gray-500 mb-2">Mensagem que será enviada</p>
+            <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">{editedMessage}</p>
           </div>
 
           {/* WhatsApp button */}

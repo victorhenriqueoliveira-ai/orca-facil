@@ -226,24 +226,27 @@ export default async function ApprovalPage({ params }: PageProps) {
           </div>
         )}
 
-        {/* Botões de ação */}
-        <div className="space-y-3">
-          <ApproveButton quoteId={quote.id as string} token={token} />
-
-          {waLink && (
-            <a
-              href={waLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full block text-center py-4 px-6 rounded-xl border-2 border-[#25D366] text-[#25D366] font-semibold text-base"
-            >
-              Tenho dúvidas
-            </a>
-          )}
-        </div>
+        {waLink && (
+          <a
+            href={waLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full block text-center py-4 px-6 rounded-xl border-2 border-[#25D366] text-[#25D366] font-semibold text-base"
+          >
+            Tenho dúvidas
+          </a>
+        )}
 
         <Footer />
       </div>
+
+      {/* Botão de aprovação fixo no rodapé */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5DDD3] p-4 shadow-lg">
+        <ApproveButton quoteId={quote.id as string} token={token} />
+      </div>
+
+      {/* Espaço para o botão fixo não cobrir conteúdo */}
+      <div className="h-24" />
     </main>
   );
 }
