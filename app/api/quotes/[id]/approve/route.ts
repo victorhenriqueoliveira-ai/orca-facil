@@ -93,7 +93,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         serviceClient
           .from("profiles")
           .select("business_name")
-          .eq("user_id", quote.user_id as string)
+          .eq("id", quote.user_id as string)
           .single(),
         quote.customer_id
           ? serviceClient
