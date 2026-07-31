@@ -63,7 +63,6 @@ function Counter({ to, suffix, label }: { to: number; suffix: string; label: str
 // ─── Phone mockup ─────────────────────────────────────────────────────────────
 const SCREENS = [
   {
-    label: "1. Cadastro do cliente",
     bg: "#2D5D5A",
     content: (
       <div className="flex flex-col gap-3 p-4 pt-6">
@@ -90,7 +89,6 @@ const SCREENS = [
     ),
   },
   {
-    label: "2. Ambientes e itens",
     bg: "#1e4a47",
     content: (
       <div className="flex flex-col gap-2 p-4 pt-6">
@@ -120,7 +118,6 @@ const SCREENS = [
     ),
   },
   {
-    label: "3. PDF profissional",
     bg: "#1a3d3b",
     content: (
       <div className="flex flex-col gap-3 p-4 pt-6">
@@ -156,7 +153,6 @@ const SCREENS = [
     ),
   },
   {
-    label: "4. Cliente aprova",
     bg: "#0d2e2c",
     content: (
       <div className="flex flex-col gap-3 p-4 pt-6">
@@ -246,8 +242,6 @@ function PhoneMockup() {
           {screen.content}
         </div>
       </div>
-
-      <div className="mt-4 text-sm text-white/60 font-medium">{screen.label}</div>
     </div>
   );
 }
@@ -329,7 +323,7 @@ export function LandingClient() {
                     Já tenho conta
                   </Link>
                 </div>
-                <p className="text-sm text-white/40">Sem cartão de crédito. Cancele quando quiser.</p>
+                <p className="text-sm text-[#c2703a]/90">Sem cartão de crédito. Cancele quando quiser.</p>
               </Reveal>
 
               <Reveal delay={200} className="flex justify-center lg:justify-end">
