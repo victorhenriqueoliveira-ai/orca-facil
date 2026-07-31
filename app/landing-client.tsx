@@ -278,7 +278,7 @@ export function LandingClient() {
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-[#E5DDD3] bg-[#FAF7F2]/95 backdrop-blur-sm">
         <div className="mx-auto max-w-6xl">
-          <div className="flex h-20 sm:h-[120px] items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
             <Link href="/">
               <img src="/orca_facil.png" alt="Orça Fácil" className="h-20 sm:h-[100px] w-auto" />
             </Link>
