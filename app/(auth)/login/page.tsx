@@ -156,7 +156,7 @@ export default function PaginaLogin() {
           <div className="mt-4 text-center space-y-2">
             <a
               href="/"
-              className="block text-sm text-primary underline"
+              className="block text-sm text-black underline"
             >
               Voltar para a página inicial
             </a>

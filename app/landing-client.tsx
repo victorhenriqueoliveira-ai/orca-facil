@@ -277,10 +277,10 @@ export function LandingClient() {
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-[#E5DDD3] bg-[#FAF7F2]/95 backdrop-blur-sm">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 sm:h-[120px] items-center justify-between">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex h-20 sm:h-[120px] items-center justify-between px-4 sm:px-6 lg:px-8">
             <Link href="/">
-              <img src="/orca_facil.png" alt="Orça Fácil" className="h-10 sm:h-[100px] w-auto" />
+              <img src="/orca_facil.png" alt="Orça Fácil" className="h-20 sm:h-[100px] w-auto" />
             </Link>
             <nav className="flex items-center gap-3">
               <Link href="/login" className="text-sm font-medium text-[#2B2621]/70 hover:text-[#2D5D5A] transition-colors">
